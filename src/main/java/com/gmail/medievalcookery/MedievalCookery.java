@@ -7,15 +7,20 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 
 public class MedievalCookery extends JavaPlugin {
 
-    private static JavaPlugin instance;
-    public static JavaPlugin getInstance() {
+    private static MedievalCookery instance;
+    private ConfigManager configManager;
+    public static MedievalCookery getInstance() {
         return instance;
     }
+
+    private List<CustomFoodRecipe> recipes = new ArrayList();
 
     public StorageSubsystem storage = new StorageSubsystem();
 
@@ -35,28 +40,37 @@ public class MedievalCookery extends JavaPlugin {
         return spoiledFood;
     }
 
+    public boolean hasRecipeName(String name) {
+        System.out.println(name);
+        for (CustomFoodRecipe recipe : recipes) {
+            if (recipe.name.equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public CustomFoodRecipe getRecipeByName(String name) {
+        for (CustomFoodRecipe recipe : recipes) {
+            if (recipe.name.equalsIgnoreCase(name)) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void onEnable() {
         System.out.println(("--- Enabling Medieval-Cookery ------ "));
 
         instance = this;
 
-        CustomFoodRecipe recipe = new CustomFoodRecipe(this, "salmon_roll", "Salmon Roll",
-                new String[] {"KWK", "WRW", "KWK"},
-                MaterialMap(new String[] { "K", "R", "W" },
-                        new Material[] { Material.DRIED_KELP, Material.SALMON, Material.WHEAT }));
+        configManager = new ConfigManager();
+
+        recipes = configManager.loadRecipes();
 
         getServer().getPluginManager().registerEvents(new EventHandlers(), this);
-    }
 
-    private HashMap<String, Material> MaterialMap(String[] keys, Material[] values) {
-        HashMap<String, Material> map = new HashMap<String, Material>();
-        int i = 0;
-        for(String key : keys) {
-            map.put(key, values[i]);
-            i++;
-        }
-        return map;
     }
 
     @Override

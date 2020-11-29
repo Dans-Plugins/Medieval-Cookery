@@ -16,7 +16,7 @@ import static java.util.Calendar.MINUTE;
 
 public class TimeStampSubsystem {
 
-    static String pattern = "MM/dd/yyyy HH:mm:ss";
+    public static String pattern = "MM/dd/yyyy HH:mm:ss";
 
     public static ItemStack assignTimeStamp(ItemStack item, int minutesUntilSpoilage) {
         ItemMeta meta = item.getItemMeta();
@@ -39,11 +39,13 @@ public class TimeStampSubsystem {
 
     private static String getDateString() {
         String dateString = new SimpleDateFormat(pattern).format(getDate());
+        System.out.println("getDateString()" + dateString);
         return dateString;
     }
 
     private static Date getDate() {
-        return Calendar.getInstance().getTime();
+        Calendar calendar = Calendar.getInstance();
+        return calendar.getTime();
     }
 
     private static String getDateStringPlusTime(int minutes) {
@@ -80,14 +82,13 @@ public class TimeStampSubsystem {
 
             DateFormat df = new SimpleDateFormat(pattern);
 
-//            timestamp = timestamp + ":01:01";
             timestamp = timestamp.substring(2);
 
             Date date = null;
             try {
                 date = df.parse(timestamp);
             } catch (Exception e) {
-                System.out.println("Something went wrong parsing timestamp " + timestamp + " with pattern " + pattern);
+                //System.out.println("Something went wrong parsing timestamp " + timestamp + " with pattern " + pattern);
             }
 
             if (date != null) {

@@ -17,9 +17,10 @@ public class StorageSubsystem {
     public static String spoiledFoodName = "Spoiled Food";
     public static String spoiledFoodLore = "This food has gone bad.";
 
-    public static int getTime(String type) {
-        Integer time = SPOIL_TIMES.get(type);
-        return time != null ? time : 0;
+    public static int getSpoilTime(String type) {
+//        Integer time = SPOIL_TIMES.get(type);
+//        return time != null ? time : 5; // If no spoil-time is found in the lookup table, just assume 5 minutes.
+        return 10; // The above code wasn't working for some reason, I just set all of them to 10 minute spoil time until fixed.
     }
 
 

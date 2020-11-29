@@ -23,6 +23,8 @@ public class CustomFoodRecipe {
     public String key = "";
     public String texture = "";
     public List<String> recipeShape = new ArrayList<String>();
+    public float satiationIncrease = 0.1f;
+    public int hungerDecrease = 1;
 
     public ItemStack itemWithBase64(ItemStack item, String base64) {
 
@@ -44,10 +46,8 @@ public class CustomFoodRecipe {
             metaSetProfileMethod.invoke(meta, profile);
             meta.setDisplayName(name);
             item.setItemMeta(meta);
-            int time = StorageSubsystem.getTime("Salmon Roll");
-            if (time > 0) {
-                TimeStampSubsystem.assignTimeStamp(item, time);
-            }
+            int time = StorageSubsystem.getSpoilTime(name);
+            TimeStampSubsystem.assignTimeStamp(item, time);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -59,20 +59,37 @@ public class CustomFoodRecipe {
         return item;
     }
 
-    public CustomFoodRecipe(MedievalCookery plugin, String recipeKey, String recipeName,
+    public CustomFoodRecipe(String recipeKey, String recipeName,
             String[] shape,
-            HashMap<String, Material> ingredients
+            HashMap<String, Material> ingredients,
+            String texture, float satiationAmt, int hungerAmt
     ) {
+        boolean error = false;
         key = recipeKey;
         name = recipeName;
-        ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZTc5ZTQxYzE0NmI5NTQ5Nzg2YmRiNzEzOGYzNDlmZDdjMzk1MjkwMWY4N2NhOWMyMjU4OWNhMmFlNjQ4OCJ9fX0=");
-        NamespacedKey nskey = new NamespacedKey(plugin, key);
+
+        ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), texture);
+        NamespacedKey nskey = new NamespacedKey(MedievalCookery.getInstance(), key);
         ShapedRecipe recipe = new ShapedRecipe(nskey, item);
         recipe.shape(shape[0], shape[1], shape[2]);
-
+        satiationIncrease = satiationAmt;
+        hungerDecrease = hungerAmt;
         for (String ingredient : ingredients.keySet()) {
-            recipe.setIngredient(ingredient.charAt(0), ingredients.get(ingredient));
+            if (!ingredients.containsKey(ingredient)) {
+                System.out.println("Ingredient key '" + ingredient + "' not found in materials hash.");
+                error = true;
+            } else {
+                if (ingredients.get(ingredient) != null) {
+                    recipe.setIngredient(ingredient.charAt(0), ingredients.get(ingredient));
+                } else {
+                    System.out.println("Something went wrong initializing custom food recipe " + recipeKey + ": Please ensure your symbols definition items are all valid Bukkit material names.");
+                    error = true;
+                }
+            }
         }
-        plugin.getServer().addRecipe(recipe);
+        if (!error) {
+            MedievalCookery.getInstance().getServer().addRecipe(recipe);
+            System.out.println("Registered custom recipe " + recipeKey + " with Bukkit");
+        }
     }
 }
