@@ -39,7 +39,6 @@ public class TimeStampSubsystem {
 
     private static String getDateString() {
         String dateString = new SimpleDateFormat(pattern).format(getDate());
-        System.out.println("getDateString()" + dateString);
         return dateString;
     }
 

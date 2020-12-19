@@ -23,8 +23,8 @@ public class CustomFoodRecipe {
     public String key = "";
     public String texture = "";
     public List<String> recipeShape = new ArrayList<String>();
-    public float satiationIncrease = 0.1f;
-    public int hungerDecrease = 1;
+    public int hungerDecrease = 2;
+    public Material afterEatItem = null;
 
     public ItemStack itemWithBase64(ItemStack item, String base64) {
 
@@ -62,17 +62,17 @@ public class CustomFoodRecipe {
     public CustomFoodRecipe(String recipeKey, String recipeName,
             String[] shape,
             HashMap<String, Material> ingredients,
-            String texture, float satiationAmt, int hungerAmt
+            String texture, int hungerAmt, Material afterEatItemMaterial
     ) {
         boolean error = false;
         key = recipeKey;
         name = recipeName;
 
+        afterEatItem = afterEatItemMaterial;
         ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), texture);
         NamespacedKey nskey = new NamespacedKey(MedievalCookery.getInstance(), key);
         ShapedRecipe recipe = new ShapedRecipe(nskey, item);
         recipe.shape(shape[0], shape[1], shape[2]);
-        satiationIncrease = satiationAmt;
         hungerDecrease = hungerAmt;
         for (String ingredient : ingredients.keySet()) {
             if (!ingredients.containsKey(ingredient)) {

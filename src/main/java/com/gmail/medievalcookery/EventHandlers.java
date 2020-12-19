@@ -1,20 +1,14 @@
 package com.gmail.medievalcookery;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerRecipeDiscoverEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.sql.Time;
 
 public class EventHandlers implements Listener {
 
@@ -28,6 +22,11 @@ public class EventHandlers implements Listener {
                 event.setCurrentItem(TimeStampSubsystem.assignTimeStamp(item, time));
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerJoinEvent(PlayerJoinEvent event) {
+        MedievalCookery.getInstance().endPlayerEating(event.getPlayer());
     }
 
     @EventHandler
@@ -45,10 +44,15 @@ public class EventHandlers implements Listener {
     }
 
     @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+
+    }
+
+    @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
         TimeStampSubsystem timeStamps = new TimeStampSubsystem();
         ItemStack handItem = event.getPlayer().getInventory().getItemInMainHand();
-        if (handItem != null && !handItem.getType().isAir()) {
+        if (handItem != null && !handItem.getType().isAir() && !MedievalCookery.getInstance().isPlayerEating(event.getPlayer())) {
             String itemName = handItem.getItemMeta().getDisplayName();
             if (MedievalCookery.getInstance().hasRecipeName(itemName)) {
                 if (timeStamps.timeStampAssigned(handItem)) {
@@ -57,13 +61,14 @@ public class EventHandlers implements Listener {
                         event.getPlayer().getInventory().setItemInMainHand(spoiledFood);
                         event.setCancelled(true);
                     } else {
-                        CustomFoodRecipe recipe = MedievalCookery.getInstance().getRecipeByName(itemName);
-                        MedievalCookery.getInstance().getServer().getWorld(event.getPlayer().getWorld().getName())
-                                .playSound(event.getPlayer().getLocation(), Sound.ENTITY_GENERIC_EAT, 1, 1);
-                        event.getPlayer().setSaturation(event.getPlayer().getSaturation() + recipe.satiationIncrease);
-                        event.getPlayer().setSaturation(event.getPlayer().getFoodLevel() + recipe.hungerDecrease);
                         event.setCancelled(true);
-                        DelayedInventoryAdjustment.ConsumeItemInMainHand(event.getPlayer());
+                        MedievalCookery.getInstance().startPlayerEating(event.getPlayer(), itemName);
+                        if (event.getPlayer().getInventory().getItemInMainHand().getAmount() > 1) {
+                            event.getPlayer().getInventory().getItemInMainHand().setAmount(event.getPlayer().getInventory().getItemInMainHand().getAmount() - 1);
+                        } else {
+                            event.getPlayer().getInventory().setItemInMainHand(null);
+                        }
+                        DelayedExecution.ConsumeItemInMainHand(event.getPlayer(), 40, DelayedExecution.PlayEatingSound(event.getPlayer()));
                     }
                 }
             }

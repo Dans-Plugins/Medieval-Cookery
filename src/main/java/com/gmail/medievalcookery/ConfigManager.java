@@ -53,8 +53,8 @@ public class ConfigManager {
             String[] recipeShape = recipesConfig.getStringList("recipes." + recipeKey + ".recipe").toArray(new String[0]);
             List<String> symbolsDef = new ArrayList();
             List<Material> materialsDef = new ArrayList<Material>();
-            float satiation = (float) recipesConfig.getDouble("recipes." + recipeKey + ".satiationIncrease", 0.1);
-            int hunger = recipesConfig.getInt("recipes." + recipeKey + ".satiationIncrease", 1);
+            int hunger = recipesConfig.getInt("recipes." + recipeKey + ".hungerDecrease", 1);
+            String afterEatItem = recipesConfig.getString("recipes." + recipeKey + ".afterEatItem", "");
             for (String symbol : recipesConfig.getConfigurationSection("recipes." + recipeKey + ".symbols").getKeys(false)) {
                 String matName = recipesConfig.getString("recipes." + recipeKey + ".symbols." + symbol, "");
                 Material m = null;
@@ -70,8 +70,16 @@ public class ConfigManager {
             String texture = recipesConfig.getString("recipes." + recipeKey + ".textureBase64", "");
 
             if (recipeName != "" && symbolsDef.size() > 0 && materialsDef.size() > 0) {
+                Material mat = null;
+                if (!afterEatItem.equalsIgnoreCase("")) {
+                    try {
+                        mat = Material.getMaterial(afterEatItem);
+                    } catch (Exception e) {
+                        System.out.println("[MedievalCookery] Error: Could not load material '" + afterEatItem + "' defined in the key afterEatItem of recipe '" + recipeName + "' in plugin.yml. Recipe will still load but with no afterEatItem behaviour.");
+                    }
+                }
                 CustomFoodRecipe recipe = new CustomFoodRecipe(recipeKey, recipeName, recipeShape, MaterialMap(symbolsDef.toArray(new String[0])
-                        , materialsDef.toArray(new Material[0])), texture, satiation, hunger);
+                        , materialsDef.toArray(new Material[0])), texture, hunger, mat);
                 recipeList.add(recipe);
                 System.out.println("Loaded recipe " + recipeName);
             } else {

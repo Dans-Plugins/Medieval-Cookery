@@ -5,11 +5,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StorageSubsystem {
-
+    // TODO: Move all of the code in this class somewhere more appropriate
     private static final Map<String, Integer> SPOIL_TIMES = new HashMap<String, Integer>() {{
         put("Salmon Roll", 10);
     }};
 
+    // TODO: Move this to a localization system
     public static String createdText = "Created:";
     public static String expiryDateText = "Expiry Date:";
     public static String valuesLoadedText = "Values Loaded!";
