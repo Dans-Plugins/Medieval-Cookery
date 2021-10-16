@@ -1,5 +1,7 @@
-package com.gmail.medievalcookery;
+package com.gmail.medievalcookery.services;
 
+import com.gmail.medievalcookery.CustomFoodRecipe;
+import com.gmail.medievalcookery.MedievalCookery;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -10,14 +12,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ConfigManager {
+public class ConfigService {
 
     private String dataFolder = "./plugins/MedievalCookery/";
 
     private File recipesFile = new File(dataFolder, "recipes.yml");
     private FileConfiguration recipesConfig;
 
-    public ConfigManager () {
+    public ConfigService() {
         if (!recipesFile.exists()) {
             saveRecipes(false);
         }

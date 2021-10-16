@@ -1,9 +1,8 @@
-package com.gmail.medievalcookery;
+package com.gmail.medievalcookery.services;
 
 import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -14,7 +13,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 import static java.util.Calendar.MINUTE;
 
-public class TimeStampSubsystem {
+public class TimeStampService {
 
     public static String pattern = "MM/dd/yyyy HH:mm:ss";
 
@@ -24,10 +23,10 @@ public class TimeStampSubsystem {
         if (meta != null) {
             meta.setLore(asList(
                     "",
-                    ChatColor.WHITE + StorageSubsystem.createdText,
+                    ChatColor.WHITE + StorageService.createdText,
                     ChatColor.WHITE + getDateString(),
                     "",
-                    ChatColor.WHITE + StorageSubsystem.expiryDateText,
+                    ChatColor.WHITE + StorageService.expiryDateText,
                     ChatColor.WHITE + getDateStringPlusTime(minutesUntilSpoilage)
             ));
 
@@ -65,7 +64,7 @@ public class TimeStampSubsystem {
 
                 if (lore != null) {
                     // System.out.println("Debug] Time stamp is already assigned to this item!");
-                    return lore.toString().contains(StorageSubsystem.expiryDateText);
+                    return lore.toString().contains(StorageService.expiryDateText);
                 }
             }
         }

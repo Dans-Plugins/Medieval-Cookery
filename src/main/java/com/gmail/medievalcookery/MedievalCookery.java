@@ -1,9 +1,10 @@
 package com.gmail.medievalcookery;
 
+import com.gmail.medievalcookery.services.ConfigService;
+import com.gmail.medievalcookery.services.StorageService;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -15,14 +16,14 @@ import java.util.*;
 public class MedievalCookery extends JavaPlugin {
 
     private static MedievalCookery instance;
-    private ConfigManager configManager;
+    private ConfigService configService;
     public static MedievalCookery getInstance() {
         return instance;
     }
 
     private List<CustomFoodRecipe> recipes = new ArrayList();
 
-    public StorageSubsystem storage = new StorageSubsystem();
+    public StorageService storage = new StorageService();
 
     public static String MetadataPrefix = "Cookery";
     public static String MetadataKeyIsEating = "IsEating";
@@ -34,8 +35,8 @@ public class MedievalCookery extends JavaPlugin {
         ItemMeta meta = spoiledFood.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(StorageSubsystem.spoiledFoodName);
-            meta.setLore(Collections.singletonList(ChatColor.WHITE + StorageSubsystem.spoiledFoodLore));
+            meta.setDisplayName(StorageService.spoiledFoodName);
+            meta.setLore(Collections.singletonList(ChatColor.WHITE + StorageService.spoiledFoodLore));
         }
 
         spoiledFood.setItemMeta(meta);
@@ -106,9 +107,9 @@ public class MedievalCookery extends JavaPlugin {
 
         instance = this;
 
-        configManager = new ConfigManager();
+        configService = new ConfigService();
 
-        recipes = configManager.loadRecipes();
+        recipes = configService.loadRecipes();
 
         for (Player player : getServer().getWorld("world").getPlayers())
         {
