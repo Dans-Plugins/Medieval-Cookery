@@ -1,8 +1,9 @@
 package com.gmail.medievalcookery;
 
+import com.gmail.medievalcookery.services.StorageService;
+import com.gmail.medievalcookery.services.TimeStampService;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -46,8 +47,8 @@ public class CustomFoodRecipe {
             metaSetProfileMethod.invoke(meta, profile);
             meta.setDisplayName(name);
             item.setItemMeta(meta);
-            int time = StorageSubsystem.getSpoilTime(name);
-            TimeStampSubsystem.assignTimeStamp(item, time);
+            int time = StorageService.getSpoilTime(name);
+            TimeStampService.assignTimeStamp(item, time);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

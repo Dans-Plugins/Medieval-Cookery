@@ -1,10 +1,10 @@
-package com.gmail.medievalcookery;
+package com.gmail.medievalcookery.services;
 
 import org.bukkit.Material;
 import java.util.HashMap;
 import java.util.Map;
 
-public class StorageSubsystem {
+public class StorageService {
     // TODO: Move all of the code in this class somewhere more appropriate
     private static final Map<String, Integer> SPOIL_TIMES = new HashMap<String, Integer>() {{
         put("Salmon Roll", 10);

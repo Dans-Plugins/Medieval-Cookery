@@ -1,6 +1,7 @@
 package com.gmail.medievalcookery;
 
-import org.bukkit.Sound;
+import com.gmail.medievalcookery.services.StorageService;
+import com.gmail.medievalcookery.services.TimeStampService;
 import org.bukkit.event.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -17,9 +18,9 @@ public class EventHandlers implements Listener {
         ItemStack item = event.getCurrentItem();
         String itemName = item.getItemMeta().getDisplayName();
         if (MedievalCookery.getInstance().hasRecipeName(itemName)) {
-            int time = StorageSubsystem.getSpoilTime(itemName);
+            int time = StorageService.getSpoilTime(itemName);
             if (time != 0) {
-                event.setCurrentItem(TimeStampSubsystem.assignTimeStamp(item, time));
+                event.setCurrentItem(TimeStampService.assignTimeStamp(item, time));
             }
         }
     }
@@ -37,8 +38,8 @@ public class EventHandlers implements Listener {
             int time = MedievalCookery.getInstance().storage.getSpoilTime(itemName);
 
             // if timestamp not already assigned
-            if (time != 0 && !TimeStampSubsystem.timeStampAssigned(item)) {
-                event.getEntity().setItemStack(TimeStampSubsystem.assignTimeStamp(item, time));
+            if (time != 0 && !TimeStampService.timeStampAssigned(item)) {
+                event.getEntity().setItemStack(TimeStampService.assignTimeStamp(item, time));
             }
         }
     }
@@ -50,7 +51,7 @@ public class EventHandlers implements Listener {
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
-        TimeStampSubsystem timeStamps = new TimeStampSubsystem();
+        TimeStampService timeStamps = new TimeStampService();
         ItemStack handItem = event.getPlayer().getInventory().getItemInMainHand();
         if (handItem != null && !handItem.getType().isAir() && !MedievalCookery.getInstance().isPlayerEating(event.getPlayer())) {
             String itemName = handItem.getItemMeta().getDisplayName();

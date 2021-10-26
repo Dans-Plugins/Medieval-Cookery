@@ -1,4 +1,5 @@
 name: MedievalCookery
-version: 0.1
+version: 0.1-alpha-1
 main: com.gmail.medievalcookery.MedievalCookery
 api-version: 1.16
+authors: [Caibinus, DanTheTechMan]
