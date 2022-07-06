@@ -1,4 +1,4 @@
-# MedievalCookery
+# Medieval Cookery
 This Minecraft plugin allows server owners to add cooking recipes for an enhanced roleplay experience. 
 
 ## Custom Recipes
