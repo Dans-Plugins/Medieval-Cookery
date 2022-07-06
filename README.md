@@ -1,6 +1,5 @@
 # MedievalCookery
-
-Bukkit plugin for Minecraft servers to add cooking recipes for enhanced roleplay experience.
+This Minecraft plugin allows server owners to add cooking recipes for an enhanced roleplay experience. 
 
 ## Custom Recipes
 
