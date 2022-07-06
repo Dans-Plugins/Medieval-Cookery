@@ -1,9 +1,8 @@
-package com.gmail.medievalcookery.services;
+package dansplugins.medievalcookery.services;
 
-import com.gmail.medievalcookery.CustomFoodRecipe;
-import com.gmail.medievalcookery.MedievalCookery;
+import dansplugins.medievalcookery.CustomFoodRecipe;
+import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -13,13 +12,15 @@ import java.util.HashMap;
 import java.util.List;
 
 public class ConfigService {
+    private final MedievalCookery medievalCookery;
 
-    private String dataFolder = "./plugins/MedievalCookery/";
+    private final String dataFolder = "./plugins/MedievalCookery/";
 
-    private File recipesFile = new File(dataFolder, "recipes.yml");
-    private FileConfiguration recipesConfig;
+    private final File recipesFile = new File(dataFolder, "recipes.yml");
+    private final FileConfiguration recipesConfig;
 
-    public ConfigService() {
+    public ConfigService(MedievalCookery medievalCookery) {
+        this.medievalCookery = medievalCookery;
         if (!recipesFile.exists()) {
             saveRecipes(false);
         }
@@ -81,7 +82,7 @@ public class ConfigService {
                     }
                 }
                 CustomFoodRecipe recipe = new CustomFoodRecipe(recipeKey, recipeName, recipeShape, MaterialMap(symbolsDef.toArray(new String[0])
-                        , materialsDef.toArray(new Material[0])), texture, hunger, mat);
+                        , materialsDef.toArray(new Material[0])), texture, medievalCookery, hunger, mat);
                 recipeList.add(recipe);
                 System.out.println("Loaded recipe " + recipeName);
             } else {
@@ -103,7 +104,7 @@ public class ConfigService {
     }
 
     public void saveRecipes(boolean replace) {
-        MedievalCookery.getInstance().saveResource("recipes.yml", replace);
+        medievalCookery.saveResource("recipes.yml", replace);
     }
 
 }

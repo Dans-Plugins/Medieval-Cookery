@@ -1,7 +1,5 @@
-package com.gmail.medievalcookery;
+package dansplugins.medievalcookery;
 
-import com.gmail.medievalcookery.services.StorageService;
-import com.gmail.medievalcookery.services.TimeStampService;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +17,7 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
 public class CustomFoodRecipe {
+    private final MedievalCookery medievalCookery;
 
     public String name = "";
     public String key = "";
@@ -47,8 +46,6 @@ public class CustomFoodRecipe {
             metaSetProfileMethod.invoke(meta, profile);
             meta.setDisplayName(name);
             item.setItemMeta(meta);
-            int time = StorageService.getSpoilTime(name);
-            TimeStampService.assignTimeStamp(item, time);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
@@ -61,17 +58,18 @@ public class CustomFoodRecipe {
     }
 
     public CustomFoodRecipe(String recipeKey, String recipeName,
-            String[] shape,
-            HashMap<String, Material> ingredients,
-            String texture, int hungerAmt, Material afterEatItemMaterial
+                            String[] shape,
+                            HashMap<String, Material> ingredients,
+                            String texture, MedievalCookery medievalCookery, int hungerAmt, Material afterEatItemMaterial
     ) {
+        this.medievalCookery = medievalCookery;
         boolean error = false;
         key = recipeKey;
         name = recipeName;
 
         afterEatItem = afterEatItemMaterial;
         ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), texture);
-        NamespacedKey nskey = new NamespacedKey(MedievalCookery.getInstance(), key);
+        NamespacedKey nskey = new NamespacedKey(this.medievalCookery, key);
         ShapedRecipe recipe = new ShapedRecipe(nskey, item);
         recipe.shape(shape[0], shape[1], shape[2]);
         hungerDecrease = hungerAmt;
@@ -89,7 +87,7 @@ public class CustomFoodRecipe {
             }
         }
         if (!error) {
-            MedievalCookery.getInstance().getServer().addRecipe(recipe);
+            this.medievalCookery.getServer().addRecipe(recipe);
             System.out.println("Registered custom recipe " + recipeKey + " with Bukkit");
         }
     }

@@ -1,4 +1,4 @@
-package com.gmail.medievalcookery;
+package dansplugins.medievalcookery;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,20 +10,26 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
 public class DelayedExecution {
-    public static BukkitTask PlayEatingSound(final Player eventPlayer) {
-        return Bukkit.getScheduler().runTaskTimer(MedievalCookery.getInstance(),
+    private final MedievalCookery medievalCookery;
+
+    public DelayedExecution(MedievalCookery medievalCookery) {
+        this.medievalCookery = medievalCookery;
+    }
+
+    public BukkitTask PlayEatingSound(final Player eventPlayer) {
+        return Bukkit.getScheduler().runTaskTimer(medievalCookery,
                 new Runnable() {
                     @Override
                     public void run() {
-                        MedievalCookery.getInstance().getServer().getWorld(eventPlayer.getWorld().getName())
+                        medievalCookery.getServer().getWorld(eventPlayer.getWorld().getName())
                                 .playSound(eventPlayer.getLocation(), Sound.ENTITY_GENERIC_EAT, 1, 1);
                     }
                 }, 0, 5);
     }
 
-    public static void ConsumeItemInMainHand(final Player eventPlayer, final long duration, final BukkitTask task) {
+    public void ConsumeItemInMainHand(final Player eventPlayer, final long duration, final BukkitTask task) {
         final Player player = eventPlayer;
-        Bukkit.getScheduler().runTaskLater(MedievalCookery.getInstance(),
+        Bukkit.getScheduler().runTaskLater(medievalCookery,
                 new Runnable() {
                     @Override
                     public void run() {
@@ -33,11 +39,11 @@ public class DelayedExecution {
                             // TODO Optional "seasoning" or "spice" ingredients included in the recipe
                             // which would be read out after you consume the food item (instead of just "it was delicious"
                             // it would say "it tastes like ..." and list some (if not all) of the ingredients.
-                            String itemName = MedievalCookery.getInstance().getPlayerEatingItemName(eventPlayer);
-                            CustomFoodRecipe recipe = MedievalCookery.getInstance().getRecipeByName(itemName);
+                            String itemName = medievalCookery.getPlayerEatingItemName(eventPlayer);
+                            CustomFoodRecipe recipe = medievalCookery.getRecipeByName(itemName);
                             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
                             player.sendMessage(ChatColor.GRAY + "You ate a " + itemName + ", it was delicious.");
-                            MedievalCookery.getInstance().endPlayerEating(eventPlayer);
+                            medievalCookery.endPlayerEating(eventPlayer);
                             player.getInventory().addItem(new ItemStack(recipe.afterEatItem, 1));
                         } catch (Exception e) {
 

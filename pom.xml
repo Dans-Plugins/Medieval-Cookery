@@ -6,7 +6,7 @@
 
     <groupId>com.gmail.philbgarner</groupId>
     <artifactId>Medieval-Cookery</artifactId>
-    <version>v0.1-alpha-1</version>
+    <version>0.1-SNAPSHOT</version>
     <build>
         <plugins>
             <plugin>
@@ -15,6 +15,14 @@
                 <configuration>
                     <source>6</source>
                     <target>6</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>7</source>
+                    <target>7</target>
                 </configuration>
             </plugin>
         </plugins>
