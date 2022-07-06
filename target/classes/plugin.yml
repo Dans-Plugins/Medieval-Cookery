@@ -1,5 +1,0 @@
-name: MedievalCookery
-version: '${project.version}'
-main: com.gmail.medievalcookery.MedievalCookery
-api-version: 1.16
-authors: [Caibinus, DanTheTechMan]
