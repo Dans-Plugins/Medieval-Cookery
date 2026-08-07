@@ -14,7 +14,7 @@ On the first startup a default `recipes.yml` is written to `plugins/MedievalCook
 
 ## Craftable Foods
 
-All recipes use the standard 3×3 crafting table. In the patterns below, each row is one row of the grid and a `.` marks an empty slot.
+All recipes use the standard 3×3 crafting table. In the patterns below, each row is one row of the grid and a `.` marks a slot that must be left empty. The `.` is a reading aid only — inside `recipes.yml` an empty slot is written as a space.
 
 | Food | Pattern | Ingredients |
 |------|---------|-------------|
