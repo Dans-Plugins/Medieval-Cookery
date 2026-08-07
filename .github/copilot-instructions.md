@@ -13,9 +13,10 @@ making any changes.
 
 ## Project Structure
 
-- `src/main/java/com/gmail/medievalcookery/` – Plugin source code
+- `src/main/java/dansplugins/medievalcookery/` – Plugin source code
 - `src/main/resources/plugin.yml` – Plugin metadata
-- `src/main/resources/recipes.yml` – Food recipe definitions
+- `src/main/resources/recipes.yml` – Default food recipe definitions, copied to
+  `plugins/MedievalCookery/recipes.yml` on a server's first startup
 
 ## Contribution Workflow
 
