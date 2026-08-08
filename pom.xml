@@ -6,7 +6,7 @@
 
     <groupId>com.gmail.philbgarner</groupId>
     <artifactId>Medieval-Cookery</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT-8-8-2026</version>
     <build>
         <plugins>
             <plugin>
