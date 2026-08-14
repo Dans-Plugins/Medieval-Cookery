@@ -93,8 +93,13 @@ class RecipesResourceTest {
                 }
             }
         }
-        assertTrue(declared.containsAll(used), key + " pattern uses symbols that are not declared: " + used);
-        assertTrue(used.containsAll(declared), key + " declares symbols its pattern never uses: " + declared);
+        Set<String> undeclared = new HashSet<>(used);
+        undeclared.removeAll(declared);
+        assertTrue(undeclared.isEmpty(), key + " pattern uses symbols that are not declared: " + undeclared);
+
+        Set<String> unused = new HashSet<>(declared);
+        unused.removeAll(used);
+        assertTrue(unused.isEmpty(), key + " declares symbols its pattern never uses: " + unused);
     }
 
     @ParameterizedTest
