@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - The version reported to Bukkit is now the real project version. `plugin.yml` carries `${project.version}`, but no resource filtering was configured, so the packaged file kept that literal string and every install reported its version as `${project.version}`. `src/main/resources/plugin.yml` is now filtered during the build; `recipes.yml` is still copied verbatim so that its Base64 texture data is left untouched.
 - The project builds again on current JDKs. `pom.xml` declared `maven-compiler-plugin` twice, the second declaration pinning source and target level 7, which JDK 20 and newer reject outright. A single pinned declaration now compiles at level 8 — chosen so the packaged jar stays loadable on the Java 8 and Java 11 servers that run the Minecraft 1.16 API this plugin targets.
+- The `Dev Release` workflow now retries publishing the `dev` prerelease before giving up. The release and its tag have to be deleted and recreated for the tag to move to the new commit, and a transient API failure inside that window previously left the repository with no `dev` release at all until the workflow was re-run by hand. Each attempt now starts from a clean slate, and an exhausted retry fails loudly.
 
 ### Added
 
