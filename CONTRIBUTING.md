@@ -16,9 +16,19 @@ Thank you for your interest in contributing!
 mvn clean package
 ```
 
-The build is pinned to Java source/target level 7, which JDK 20 and newer refuse to
-compile. Continuous integration builds on JDK 17, so JDK 17 is the version to build
-with locally; a newer JDK fails with `Source option 7 is no longer supported`.
+Sources are compiled at Java source/target level 8, so any JDK from 8 onward builds the
+project. Level 8 is deliberate: the packaged jar has to stay loadable on the Java 8 and
+Java 11 servers that run the Minecraft 1.16 API this plugin targets. Continuous
+integration builds on JDK 17.
+
+## Testing
+
+```
+mvn test
+```
+
+Tests are written with JUnit 5 and live in `src/test/java`. `mvn clean package` runs them
+as part of the build.
 
 ## Code Style
 
@@ -39,7 +49,9 @@ requires:
 - `afterEatItem` — material returned to the player after eating (optional)
 
 See [CONFIG.md](CONFIG.md) for how each field is read and what happens when one is
-missing or invalid.
+missing or invalid. `RecipesResourceTest` checks the bundled file against this schema, so
+a new recipe that omits a required field, declares an unused symbol or names a material
+Bukkit does not recognise fails the build.
 
 ## Reporting Issues
 
