@@ -38,10 +38,10 @@ skipped when:
 - its pattern uses a character the `symbols` section does not declare, or declares a symbol
   the pattern never uses.
 
-Two invalid values are reported without skipping the recipe, because neither prevents it from
-being crafted:
+Two other values are tolerated rather than skipping the recipe, because neither prevents it
+from being crafted:
 
-- an `afterEatItem` naming a material Bukkit does not recognise, which leaves the recipe with
-  no after-eat behaviour;
-- a `textureBase64` value that is absent or shorter than 20 characters, which leaves the item
-  as a default-skinned player head carrying the configured display name.
+- an `afterEatItem` naming a material Bukkit does not recognise is logged, and the recipe
+  loads with no after-eat behaviour;
+- a `textureBase64` value that is absent or shorter than 20 characters is not logged, and the
+  food is a default-skinned player head carrying the configured display name.
