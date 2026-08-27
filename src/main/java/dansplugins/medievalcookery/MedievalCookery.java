@@ -21,7 +21,7 @@ public class MedievalCookery extends JavaPlugin {
     public void onEnable() {
         recipes = configService.loadRecipes();
 
-        for (Player player : getServer().getWorld("world").getPlayers()) {
+        for (Player player : getServer().getOnlinePlayers()) {
             endPlayerEating(player);
         }
 

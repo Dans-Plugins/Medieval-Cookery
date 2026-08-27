@@ -26,12 +26,22 @@ server copy is removed or updated by hand.
 | `recipes.<id>.afterEatItem` | No | Bukkit material returned to the player after eating (for example `BOWL`). No item is returned when omitted. |
 | `recipes.<id>.textureBase64` | No | Base64-encoded skin texture used for the custom player-head item. |
 
-Failures are not handled uniformly, so each entry should be checked against the table above
-before the server is restarted:
+A recipe entry that cannot be used as configured is skipped, and the reason is logged with
+the entry's id. The remaining recipes still load, and the plugin still enables. An entry is
+skipped when:
 
-- A recipe with no `name` is skipped, and an error is logged for it. The remaining recipes
-  still load.
-- A recipe with no `symbols` section, or with a `recipe` pattern of fewer than 3 rows,
-  aborts recipe loading entirely and stops the plugin from enabling.
-- A symbol pointing at a material name that Bukkit does not recognise is logged, and that
-  recipe is not registered with Bukkit, so it cannot be crafted.
+- it has no `name`;
+- it has no `symbols` section, or that section declares no symbols;
+- one of its symbols is longer than a single character;
+- one of its symbols names no material, or names a material Bukkit does not recognise;
+- its `recipe` pattern is not exactly 3 rows of exactly 3 characters;
+- its pattern uses a character the `symbols` section does not declare, or declares a symbol
+  the pattern never uses.
+
+Two other values are tolerated rather than skipping the recipe, because neither prevents it
+from being crafted:
+
+- an `afterEatItem` naming a material Bukkit does not recognise is logged, and the recipe
+  loads with no after-eat behaviour;
+- a `textureBase64` value that is absent or shorter than 20 characters is not logged, and the
+  food is a default-skinned player head carrying the configured display name.
