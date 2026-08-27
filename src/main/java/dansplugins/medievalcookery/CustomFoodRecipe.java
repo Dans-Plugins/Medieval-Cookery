@@ -9,8 +9,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.authlib.GameProfile;
@@ -32,6 +32,14 @@ public class CustomFoodRecipe {
             return null;
         }
         SkullMeta meta = (SkullMeta) item.getItemMeta();
+
+        if (base64.length() < 20) {
+            // textureBase64 is optional, and the profile below reads the last 20 characters of it.
+            // Without usable texture data the head keeps its default skin and is only named.
+            meta.setDisplayName(name);
+            item.setItemMeta(meta);
+            return item;
+        }
 
         Method metaSetProfileMethod = null;
         try {
@@ -59,11 +67,10 @@ public class CustomFoodRecipe {
 
     public CustomFoodRecipe(String recipeKey, String recipeName,
                             String[] shape,
-                            HashMap<String, Material> ingredients,
+                            Map<String, Material> ingredients,
                             String texture, MedievalCookery medievalCookery, int hungerAmt, Material afterEatItemMaterial
     ) {
         this.medievalCookery = medievalCookery;
-        boolean error = false;
         key = recipeKey;
         name = recipeName;
 
@@ -73,22 +80,12 @@ public class CustomFoodRecipe {
         ShapedRecipe recipe = new ShapedRecipe(nskey, item);
         recipe.shape(shape[0], shape[1], shape[2]);
         hungerDecrease = hungerAmt;
-        for (String ingredient : ingredients.keySet()) {
-            if (!ingredients.containsKey(ingredient)) {
-                System.out.println("Ingredient key '" + ingredient + "' not found in materials hash.");
-                error = true;
-            } else {
-                if (ingredients.get(ingredient) != null) {
-                    recipe.setIngredient(ingredient.charAt(0), ingredients.get(ingredient));
-                } else {
-                    System.out.println("Something went wrong initializing custom food recipe " + recipeKey + ": Please ensure your symbols definition items are all valid Bukkit material names.");
-                    error = true;
-                }
-            }
+        // Every symbol was resolved to a known material, and checked against the pattern, by
+        // ConfigService before this constructor is reached.
+        for (Map.Entry<String, Material> ingredient : ingredients.entrySet()) {
+            recipe.setIngredient(ingredient.getKey().charAt(0), ingredient.getValue());
         }
-        if (!error) {
-            this.medievalCookery.getServer().addRecipe(recipe);
-            System.out.println("Registered custom recipe " + recipeKey + " with Bukkit");
-        }
+        this.medievalCookery.getServer().addRecipe(recipe);
+        System.out.println("Registered custom recipe " + recipeKey + " with Bukkit");
     }
 }
