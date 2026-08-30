@@ -3,6 +3,7 @@ package dansplugins.medievalcookery.listeners;
 import dansplugins.medievalcookery.CustomFoodItem;
 import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -35,6 +36,9 @@ public class EatListener implements Listener {
         if (!isEatingGesture(event.getAction()) || event.getHand() != EquipmentSlot.HAND) {
             return;
         }
+        if (isBlockInteractionInstead(event.getAction(), clickedType(event), event.getPlayer().isSneaking())) {
+            return;
+        }
 
         String foodName = CustomFoodItem.nameOf(event.getItem());
         if (foodName == null || !medievalCookery.hasRecipeName(foodName)) {
@@ -63,5 +67,24 @@ public class EatListener implements Listener {
      */
     static boolean isEatingGesture(Action action) {
         return action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
+    }
+
+    /**
+     * Reports whether the clicked block would have claimed this right-click for itself.
+     *
+     * Vanilla gives a block's own interaction priority over the item being held, so opening a
+     * chest while carrying food opens the chest rather than eating. Cancelling the event here
+     * regardless would make every container, door and workstation unusable to a player carrying
+     * a food. Sneaking suppresses the block's interaction in vanilla, and so does not stop a meal.
+     */
+    static boolean isBlockInteractionInstead(Action action, Material clickedBlockType, boolean sneaking) {
+        return action == Action.RIGHT_CLICK_BLOCK
+                && !sneaking
+                && clickedBlockType != null
+                && clickedBlockType.isInteractable();
+    }
+
+    private static Material clickedType(PlayerInteractEvent event) {
+        return event.getClickedBlock() == null ? null : event.getClickedBlock().getType();
     }
 }

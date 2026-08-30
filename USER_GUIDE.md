@@ -33,6 +33,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - If the recipe sets an `afterEatItem`, that item is added to your inventory. Beet Salad and Bowl of Rice return the Bowl used to craft them.
 - Moving the food out of your main hand before the meal finishes cancels it, as does logging out and back in. No food is consumed and no effect is applied in that case.
 - Right-clicking again while already eating does nothing; one meal has to finish before the next begins.
+- Right-clicking a block that has its own use — a chest, a door, a crafting table — opens that block instead of starting a meal, exactly as carrying a vanilla food does. Sneak while you right-click to eat in front of one.
 
 ## Known Limitations
 
