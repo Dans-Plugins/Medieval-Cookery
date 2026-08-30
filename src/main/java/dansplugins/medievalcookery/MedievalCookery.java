@@ -1,5 +1,6 @@
 package dansplugins.medievalcookery;
 
+import dansplugins.medievalcookery.listeners.EatListener;
 import dansplugins.medievalcookery.listeners.JoinListener;
 import dansplugins.medievalcookery.services.ConfigService;
 import org.bukkit.entity.Player;
@@ -26,6 +27,7 @@ public class MedievalCookery extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
+        getServer().getPluginManager().registerEvents(new EatListener(this), this);
 
     }
 

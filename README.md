@@ -14,7 +14,7 @@ Recipes are shaped, and use the symbols you define in the 'symbols' list of your
 
 ## Documentation
 
-- [USER_GUIDE.md](USER_GUIDE.md) – installation, the craftable foods, and current limitations
+- [USER_GUIDE.md](USER_GUIDE.md) – installation, the craftable foods, and how to eat them
 - [CONFIG.md](CONFIG.md) – `recipes.yml` location and field reference
 - [COMMANDS.md](COMMANDS.md) – command reference
 - [CONTRIBUTING.md](CONTRIBUTING.md) – building the plugin and adding recipes
