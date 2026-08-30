@@ -51,8 +51,9 @@ public class DelayedExecution {
     /**
      * Completes one eating session: the food leaves the player's hand and its effects are applied.
      *
-     * Nothing is applied if the meal was interrupted — a player who logs out and back in, or who
-     * moves the food out of their main hand before the last bite, does not get to keep it. The
+     * Nothing is applied if the meal was interrupted: a player who moves the food out of their
+     * main hand before the last bite does not get to keep it, and a meal already ended by some
+     * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
      * eating state is cleared either way, so an interrupted meal cannot block the next one.
      */
     void finishEating(Player player) {
