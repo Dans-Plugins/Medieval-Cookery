@@ -20,7 +20,13 @@ public class MedievalCookery extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        recipes = configService.loadRecipes();
+        // loadRecipes returns null when recipes.yml could not be read at all. The field keeps its
+        // empty list in that case, because it is now consulted on every interaction and iterating
+        // a null there would throw once per right-click rather than once at startup.
+        List<CustomFoodRecipe> loadedRecipes = configService.loadRecipes();
+        if (loadedRecipes != null) {
+            recipes = loadedRecipes;
+        }
 
         for (Player player : getServer().getOnlinePlayers()) {
             endPlayerEating(player);
