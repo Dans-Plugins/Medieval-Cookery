@@ -4,8 +4,14 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -116,5 +122,30 @@ class ConfigServiceTest {
         assertTrue(ConfigService.isShapeUsable(new String[]{"   ", "   ", "   "}, noSymbols, "stew"),
                 "an empty pattern passes this check; loadRecipes relies on readSymbols to reject "
                         + "a recipe that declares no symbols");
+    }
+
+    /**
+     * The plugin instance is only consulted to write the bundled default out, which cannot happen
+     * here because the folder already holds a recipes file, so a null stands in for the server-side
+     * plugin the tests have no way to construct.
+     */
+    private static ConfigService serviceReading(Path dataFolder, String recipesYaml) throws IOException {
+        Files.write(dataFolder.resolve("recipes.yml"), recipesYaml.getBytes(StandardCharsets.UTF_8));
+        return new ConfigService(null, dataFolder.toFile());
+    }
+
+    @Test
+    void recipesAreReadFromTheDataFolderRatherThanTheWorkingDirectory(@TempDir Path dataFolder) throws IOException {
+        // The path the data folder was previously assumed to be. Its absence is what makes the
+        // assertions below evidence that the folder the service was given is the one it read.
+        assertFalse(new File("./plugins/MedievalCookery/recipes.yml").exists(),
+                "the previously assumed path must be absent for this test to distinguish the two");
+
+        ConfigService configService = serviceReading(dataFolder,
+                "recipes:\n  stew:\n    name: Hearty Stew\n    hungerDecrease: 7\n");
+
+        assertNotNull(configService.getRecipeConfig().getConfigurationSection("recipes"));
+        assertEquals("Hearty Stew", configService.getRecipeConfig().getString("recipes.stew.name"));
+        assertEquals(7, configService.getRecipeConfig().getInt("recipes.stew.hungerDecrease"));
     }
 }
