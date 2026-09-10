@@ -4,13 +4,14 @@ Medieval Cookery does not use a `config.yml`. Recipes are configured in `recipes
 
 ## Where recipes.yml Lives
 
-On first startup the plugin writes its bundled default `recipes.yml` to
-`plugins/MedievalCookery/recipes.yml`, and it is that copy which is read on every
-subsequent startup. Server owners should edit the copy under `plugins/MedievalCookery/`;
-the file at `src/main/resources/recipes.yml` in this repository is only the default that
-gets written out when no copy exists yet.
+On first startup the plugin writes its bundled default `recipes.yml` into its own data
+folder, and it is that copy which is read on every subsequent startup. The data folder is
+`plugins/MedievalCookery/` unless the server has been started with its plugins directory
+somewhere else, in which case it is `MedievalCookery/` under that directory. Server owners
+should edit the copy in the data folder; the file at `src/main/resources/recipes.yml` in
+this repository is only the default that gets written out when no copy exists yet.
 
-An existing `plugins/MedievalCookery/recipes.yml` is never overwritten by a plugin update,
+An existing `recipes.yml` in the data folder is never overwritten by a plugin update,
 so recipes added to the bundled default in a later version are not picked up until the
 server copy is removed or updated by hand.
 

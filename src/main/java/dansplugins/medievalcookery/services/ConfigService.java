@@ -18,13 +18,24 @@ import java.util.Set;
 public class ConfigService {
     private final MedievalCookery medievalCookery;
 
-    private final String dataFolder = "./plugins/MedievalCookery/";
-
-    private final File recipesFile = new File(dataFolder, "recipes.yml");
+    private final File recipesFile;
     private final FileConfiguration recipesConfig;
 
     public ConfigService(MedievalCookery medievalCookery) {
+        this(medievalCookery, medievalCookery.getDataFolder());
+    }
+
+    /**
+     * Reads the recipes file out of a given folder.
+     *
+     * The folder must be the one {@link #saveRecipes(boolean)} writes the bundled default to,
+     * which is the plugin's data folder — the public constructor is what production uses, and it
+     * passes exactly that. This form exists so a test can supply a folder it controls, because a
+     * data folder is only known to a running server.
+     */
+    ConfigService(MedievalCookery medievalCookery, File dataFolder) {
         this.medievalCookery = medievalCookery;
+        this.recipesFile = new File(dataFolder, "recipes.yml");
         if (!recipesFile.exists()) {
             saveRecipes(false);
         }
