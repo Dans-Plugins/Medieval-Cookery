@@ -1,6 +1,7 @@
 package dansplugins.medievalcookery.services;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -147,5 +150,69 @@ class ConfigServiceTest {
         assertNotNull(configService.getRecipeConfig().getConfigurationSection("recipes"));
         assertEquals("Hearty Stew", configService.getRecipeConfig().getString("recipes.stew.name"));
         assertEquals(7, configService.getRecipeConfig().getInt("recipes.stew.hungerDecrease"));
+    }
+    // --- usage reporting -------------------------------------------------------------------
+
+    /** The bundled config.yml, read from the classpath the way JavaPlugin registers it as defaults. */
+    private static YamlConfiguration bundledConfig() {
+        InputStream stream = ConfigServiceTest.class.getResourceAsStream("/config.yml");
+        assertNotNull(stream, "config.yml is missing from the packaged resources");
+        return YamlConfiguration.loadConfiguration(new InputStreamReader(stream, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * What getConfig() returns on a server whose on-disk config.yml predates the usage-reporting
+     * block: the file as written, with the jar's config.yml registered as its defaults.
+     * saveDefaultConfig() never rewrites an existing file, so this is every upgraded installation.
+     */
+    private static Configuration onDiskConfigLacking(String yamlOnDisk) {
+        YamlConfiguration onDisk = YamlConfiguration.loadConfiguration(new StringReader(yamlOnDisk));
+        onDisk.setDefaults(bundledConfig());
+        return onDisk;
+    }
+
+    @Test
+    void bundledConfigCarriesTheUsageReportingBlock() {
+        YamlConfiguration bundled = bundledConfig();
+        assertTrue(bundled.getBoolean("usage-reporting.enabled"));
+        assertEquals("https://trace.danielstephenson.dev", bundled.getString("usage-reporting.endpoint"));
+        assertFalse(bundled.getString("usage-reporting.key", "").isEmpty(),
+                "an empty bundled key would turn reporting off on every server");
+    }
+
+    @Test
+    void usageReportingSettingsFallThroughToTheBundledDefaultsOnAnUpgradedInstallation() {
+        // A config.yml written before this block existed. Nothing here mentions usage reporting.
+        Configuration config = onDiskConfigLacking("some-older-setting: 3\n");
+        YamlConfiguration bundled = bundledConfig();
+
+        assertTrue(ConfigService.isUsageReportingEnabled(config));
+        assertEquals(bundled.getString("usage-reporting.endpoint"), ConfigService.getUsageReportingEndpoint(config));
+        assertEquals(bundled.getString("usage-reporting.key"), ConfigService.getUsageReportingKey(config));
+
+        // The reason the one-argument getters are used: the two-argument form would have
+        // returned this fallback instead of the bundled key, and turned reporting off.
+        assertEquals("", config.getString("usage-reporting.key", ""),
+                "getString(path, def) is expected to ignore the defaults; if this ever changes the "
+                        + "comment in ConfigService is stale");
+    }
+
+    @Test
+    void usageReportingSettingsOnDiskWinOverTheBundledDefaults() {
+        Configuration config = onDiskConfigLacking(
+                "usage-reporting:\n  enabled: false\n  endpoint: http://localhost:1\n  key: ''\n");
+
+        assertFalse(ConfigService.isUsageReportingEnabled(config));
+        assertEquals("http://localhost:1", ConfigService.getUsageReportingEndpoint(config));
+        assertEquals("", ConfigService.getUsageReportingKey(config));
+    }
+
+    @Test
+    void usageReportingStringsAreNeverNullEvenWithNoDefaultsAtAll() {
+        Configuration config = YamlConfiguration.loadConfiguration(new StringReader(""));
+
+        assertFalse(ConfigService.isUsageReportingEnabled(config));
+        assertEquals("https://trace.danielstephenson.dev", ConfigService.getUsageReportingEndpoint(config));
+        assertEquals("", ConfigService.getUsageReportingKey(config));
     }
 }
