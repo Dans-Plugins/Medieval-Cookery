@@ -3,6 +3,7 @@ package dansplugins.medievalcookery.services;
 import dansplugins.medievalcookery.CustomFoodRecipe;
 import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.Material;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,6 +17,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class ConfigService {
+    private static final String USAGE_REPORTING_ENABLED_KEY = "usage-reporting.enabled";
+    private static final String USAGE_REPORTING_ENDPOINT_KEY = "usage-reporting.endpoint";
+    private static final String USAGE_REPORTING_KEY_KEY = "usage-reporting.key";
+    private static final String DEFAULT_USAGE_REPORTING_ENDPOINT = "https://trace.danielstephenson.dev";
+
     private final MedievalCookery medievalCookery;
 
     private final File recipesFile;
@@ -176,6 +182,53 @@ public class ConfigService {
             }
         }
         return true;
+    }
+
+    /**
+     * Writes the bundled config.yml into the data folder if no copy exists there yet. The
+     * usage-reporting settings live in that file rather than in recipes.yml, so this has to run
+     * before they are read.
+     */
+    public void saveDefaultConfig() {
+        medievalCookery.saveDefaultConfig();
+    }
+
+    public boolean isUsageReportingEnabled() {
+        return isUsageReportingEnabled(medievalCookery.getConfig());
+    }
+
+    public String getUsageReportingEndpoint() {
+        return getUsageReportingEndpoint(medievalCookery.getConfig());
+    }
+
+    /** Empty when no key is configured or bundled, which the client treats as "off". */
+    public String getUsageReportingKey() {
+        return getUsageReportingKey(medievalCookery.getConfig());
+    }
+
+    // The one-argument getters, deliberately. saveDefaultConfig() never touches a
+    // config.yml that already exists, so a server upgraded from a version before
+    // usage reporting has no usage-reporting block on disk. Bukkit registers the
+    // jar's config.yml as the defaults for that file, and the one-argument
+    // getters fall through to them -- but the two-argument getters return their
+    // explicit fallback instead, which for the key would be "" and would turn
+    // reporting off on every existing installation. Verified against
+    // YamlConfiguration, not assumed. The static forms take the configuration
+    // as a parameter so ConfigServiceTest can hand them a YamlConfiguration
+    // whose defaults are the bundled file and check exactly that fall-through.
+
+    static boolean isUsageReportingEnabled(Configuration config) {
+        return config.getBoolean(USAGE_REPORTING_ENABLED_KEY);
+    }
+
+    static String getUsageReportingEndpoint(Configuration config) {
+        String endpoint = config.getString(USAGE_REPORTING_ENDPOINT_KEY);
+        return endpoint != null ? endpoint : DEFAULT_USAGE_REPORTING_ENDPOINT;
+    }
+
+    static String getUsageReportingKey(Configuration config) {
+        String key = config.getString(USAGE_REPORTING_KEY_KEY);
+        return key != null ? key : "";
     }
 
     public void saveRecipes(boolean replace) {

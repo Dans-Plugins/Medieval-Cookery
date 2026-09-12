@@ -1,6 +1,32 @@
 # Medieval Cookery Configuration
 
-Medieval Cookery does not use a `config.yml`. Recipes are configured in `recipes.yml`.
+Recipes are configured in `recipes.yml`. The plugin's only other setting, usage reporting,
+lives in `config.yml`; both files are written to the plugin's data folder on first startup.
+
+## config.yml
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `usage-reporting.enabled` | `true` | Whether the plugin reports usage events (see below). Set to `false` to turn it off. |
+| `usage-reporting.endpoint` | `https://trace.danielstephenson.dev` | The trace server events are sent to. |
+| `usage-reporting.key` | the plugin's key | Identifies this plugin to the trace server so reports are attributed to it. Not a secret: it ships in the default config and can only report as MedievalCookery. Empty means reporting is off regardless of `enabled`. |
+
+An existing `config.yml` in the data folder is never overwritten by a plugin update. A server
+upgraded from a version before the `usage-reporting` block existed keeps its old file, and the
+plugin reads the bundled defaults for any key that file lacks, so reporting is active there too
+unless the block is added and `enabled` set to `false`.
+
+### Usage reporting
+
+When the plugin is enabled, a small event is sent to the author's
+[trace](https://github.com/Stephenson-Software/trace-client-java) server so it is known which
+plugins are actually in use. An event carries the plugin's name, the event name (`startup`), and
+the plugin version — nothing about players, the world, or the server. Medieval Cookery has no
+commands, so `startup` is the only event it sends. Sending happens off the main thread, never
+delays a tick, and is dropped silently if the server cannot be reached. Set
+`usage-reporting.enabled` to `false` to turn it off.
+
+## recipes.yml
 
 ## Where recipes.yml Lives
 

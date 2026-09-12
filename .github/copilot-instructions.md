@@ -17,6 +17,10 @@ making any changes.
 - `src/main/resources/plugin.yml` – Plugin metadata
 - `src/main/resources/recipes.yml` – Default food recipe definitions, copied to
   `plugins/MedievalCookery/recipes.yml` on a server's first startup
+- `src/main/resources/config.yml` – Usage-reporting settings, copied to
+  `plugins/MedievalCookery/config.yml` on a server's first startup
+- `src/main/java/dansplugins/medievalcookery/trace/TraceClient.java` – Vendored trace client;
+  changed only by re-vendoring from upstream, never edited in place
 
 ## Contribution Workflow
 
