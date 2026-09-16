@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Usage reporting is now disclosed on every startup: the plugin logs whether reporting is on — and what is sent, where, and how to turn it off — or why it is off. Two new opt-outs win over `usage-reporting.enabled`: `enabled: false` in `plugins/trace/config.yml`, a server-wide switch written by the first trace-reporting plugin to start, and the environment variables `TRACE_USAGE_REPORTING=off` / `DO_NOT_TRACK=1`. `README.md` gained a "Usage reporting" section. Nothing about what is sent changed.
+
 ### Fixed
 
 - `recipes.yml` is read from the plugin's own data folder. The path was hardcoded as `./plugins/MedievalCookery/`, resolved against whatever directory the server process was started in, while the bundled default is written to the data folder the server assigns. On a server whose plugins directory is not `plugins/` beneath its working directory the two are different folders, so the default was written to one and a non-existent file read from the other: no recipe loaded, nothing was craftable, and every restart repeated it. The folder name is also no longer a second copy of the plugin's name, which had to agree with `plugin.yml` for the file to be found at all.
