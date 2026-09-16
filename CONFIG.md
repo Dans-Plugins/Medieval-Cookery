@@ -24,7 +24,12 @@ plugins are actually in use. An event carries the plugin's name, the event name 
 the plugin version — nothing about players, the world, or the server. Medieval Cookery has no
 commands, so `startup` is the only event it sends. Sending happens off the main thread, never
 delays a tick, and is dropped silently if the server cannot be reached. Set
-`usage-reporting.enabled` to `false` to turn it off.
+`usage-reporting.enabled` to `false` to turn it off. Two other switches win over that setting:
+`enabled: false` in `plugins/trace/config.yml` turns reporting off for every plugin on the server
+that reports to trace (the file is written by the first such plugin to start), and the environment
+variables `TRACE_USAGE_REPORTING=off` and `DO_NOT_TRACK=1` turn it off for the whole process. The
+plugin says on every startup whether reporting is on, and why it is off. Details:
+https://github.com/Stephenson-Software/trace#usage-reporting.
 
 ## recipes.yml
 

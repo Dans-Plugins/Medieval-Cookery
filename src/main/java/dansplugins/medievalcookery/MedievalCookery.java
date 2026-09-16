@@ -45,13 +45,31 @@ public class MedievalCookery extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new EatListener(this), this);
 
         // usage reporting: one event on enable; see config.yml. The plugin has no commands,
-        // so there is nothing else to report.
+        // so there is nothing else to report. The usage-reporting block is on disk for every
+        // server: config.yml did not exist before usage reporting, and saveDefaultConfig()
+        // above writes the bundled file whenever it is absent.
         trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName())
                 .key(configService.getUsageReportingKey())
                 .enabled(configService.isUsageReportingEnabled())
+                .serverWideConfig(getDataFolder().getParentFile())
                 .logger(getLogger())
                 .build();
+        logUsageReportingState();
         trace.report("startup", null, Collections.singletonMap("version", getDescription().getVersion()));
+    }
+
+    // Said on every startup so an operator can see reporting is on, and why it is off, from
+    // the console alone. The wording is shared by every plugin that reports to trace.
+    private void logUsageReportingState() {
+        if (trace.isEnabled()) {
+            getLogger().info("Usage reporting is on: " + getName() + " sends its name and version to "
+                    + configService.getUsageReportingEndpoint()
+                    + " - nothing about players or the server. Turn it off with usage-reporting.enabled: false"
+                    + " in this plugin's config.yml, or for every plugin with enabled: false in"
+                    + " plugins/trace/config.yml. Details: https://github.com/Stephenson-Software/trace#usage-reporting");
+        } else {
+            getLogger().info("Usage reporting is off (" + trace.disabledReason() + ").");
+        }
     }
 
     @Override
