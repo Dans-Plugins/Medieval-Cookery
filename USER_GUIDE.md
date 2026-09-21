@@ -6,6 +6,8 @@ Medieval Cookery is a Spigot plugin that adds craftable medieval-themed food ite
 
 ## Installation
 
+The plugin runs on Spigot (or a fork such as Paper) 1.18.1 or newer. An older server refuses to load it with an "unsupported API version" message.
+
 1. Download the latest `Medieval-Cookery-<version>.jar` from the [Releases](https://github.com/Dans-Plugins/Medieval-Cookery/releases) page.
 2. Place the JAR in your server's `plugins/` folder.
 3. Restart the server.
@@ -19,7 +21,7 @@ All recipes use the standard 3×3 crafting table. In the patterns below, each ro
 | Food | Pattern | Ingredients |
 |------|---------|-------------|
 | Salmon Roll | `KWK` / `WRW` / `KWK` | K = Dried Kelp, W = Wheat, R = Salmon |
-| Beet Salad | `BBB` / `GGG` / `.W.` | B = Beetroot, G = Grass, W = Bowl |
+| Beet Salad | `BBB` / `GGG` / `.W.` | B = Beetroot, G = Short Grass (called Grass before Minecraft 1.20.3), W = Bowl |
 | Bowl of Rice | `WWW` / `WWW` / `.B.` | W = Wheat, B = Bowl |
 | Steak Sandwich | `.B.` / `.S.` / `.B.` | B = Bread, S = Cooked Beef |
 | Salted Herring | `.B.` / `BCB` / `.B.` | B = Bone Meal, C = Cod |

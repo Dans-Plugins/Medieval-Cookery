@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -21,6 +22,14 @@ public class ConfigService {
     private static final String USAGE_REPORTING_ENDPOINT_KEY = "usage-reporting.endpoint";
     private static final String USAGE_REPORTING_KEY_KEY = "usage-reporting.key";
     private static final String DEFAULT_USAGE_REPORTING_ENDPOINT = "https://trace.danielstephenson.dev";
+
+    // Each material name that has changed between server versions, mapped to its other name in
+    // both directions; see resolveMaterial.
+    private static final Map<String, String> RENAMED_MATERIALS = new HashMap<String, String>();
+    static {
+        RENAMED_MATERIALS.put("GRASS", "SHORT_GRASS");
+        RENAMED_MATERIALS.put("SHORT_GRASS", "GRASS");
+    }
 
     private final MedievalCookery medievalCookery;
 
@@ -93,7 +102,7 @@ public class ConfigService {
 
             Material mat = null;
             if (!afterEatItem.isEmpty()) {
-                mat = Material.getMaterial(afterEatItem);
+                mat = resolveMaterial(afterEatItem);
                 if (mat == null) {
                     System.out.println("[MedievalCookery] Error: Could not load material '" + afterEatItem + "' defined in the key afterEatItem of recipe '" + recipeName + "' in recipes.yml. Recipe will still load but with no afterEatItem behaviour.");
                 }
@@ -130,7 +139,7 @@ public class ConfigService {
                 System.out.println("Error in recipe '" + recipeKey + "': the symbol '" + symbol + "' names no material.");
                 return null;
             }
-            Material material = Material.getMaterial(matName);
+            Material material = resolveMaterial(matName);
             if (material == null) {
                 System.out.println("Error in recipe '" + recipeKey + "': the symbol '" + symbol + "' references a material '" + matName + "' which could not be found.");
                 return null;
@@ -142,6 +151,24 @@ public class ConfigService {
             return null;
         }
         return ingredients;
+    }
+
+    /**
+     * Looks a material up by the name configured for it, under either side of a rename.
+     *
+     * Minecraft renamed {@code GRASS} to {@code SHORT_GRASS} in 1.20.3, and a recipes.yml is
+     * routinely read on the other side of that rename from the one it was written for: the
+     * bundled file is only copied to the data folder when no copy exists, so an install that
+     * predates the rename keeps the old name and would otherwise lose the recipe on a current
+     * server, while a server that predates it does not know the new name at all. Each name is
+     * tried, and whichever the running server recognises is used.
+     */
+    static Material resolveMaterial(String name) {
+        Material material = Material.getMaterial(name);
+        if (material == null && RENAMED_MATERIALS.containsKey(name)) {
+            material = Material.getMaterial(RENAMED_MATERIALS.get(name));
+        }
+        return material;
     }
 
     /**

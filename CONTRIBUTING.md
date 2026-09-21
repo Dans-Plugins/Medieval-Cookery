@@ -16,10 +16,11 @@ Thank you for your interest in contributing!
 mvn clean package
 ```
 
-Sources are compiled at Java source/target level 8, so any JDK from 8 onward builds the
-project. Level 8 is deliberate: the packaged jar has to stay loadable on the Java 8 and
-Java 11 servers that run the Minecraft 1.16 API this plugin targets. Continuous
-integration builds on JDK 17.
+Building needs JDK 17 or newer: the Spigot API jar the project compiles against (1.20.4,
+the API version is set in `pom.xml`) is itself compiled for Java 17, and an older `javac`
+cannot read it. Sources are still compiled at Java source/target level 8. Continuous
+integration builds on JDK 17. The packaged jar runs on any Spigot server from 1.18.1 on,
+the first version with the `PlayerProfile` API that gives a food head its texture.
 
 ## Testing
 

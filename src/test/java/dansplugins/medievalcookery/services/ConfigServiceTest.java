@@ -74,6 +74,40 @@ class ConfigServiceTest {
         assertNull(ConfigService.readSymbols(symbolsFrom("symbols:\n  W: NOT_A_REAL_MATERIAL\n"), "stew"));
     }
 
+    // --- renamed materials -----------------------------------------------------------------
+    //
+    // The API this project compiles against is from after GRASS became SHORT_GRASS, so the
+    // name the test enum lacks is the old one. On a server from before the rename the roles
+    // are the other way round, and the same two-way table serves both.
+
+    @Test
+    void aMaterialIsResolvedByItsCurrentName() {
+        assertEquals(Material.SHORT_GRASS, ConfigService.resolveMaterial("SHORT_GRASS"));
+        assertEquals(Material.BOWL, ConfigService.resolveMaterial("BOWL"));
+    }
+
+    @Test
+    void aMaterialIsResolvedByTheNameItHadBeforeARename() {
+        assertNull(Material.getMaterial("GRASS"),
+                "GRASS is expected to be unknown to this API; if it is known, the rename table is no longer exercised");
+        assertEquals(Material.SHORT_GRASS, ConfigService.resolveMaterial("GRASS"));
+    }
+
+    @Test
+    void aNameOnNeitherSideOfARenameStaysUnknown() {
+        assertNull(ConfigService.resolveMaterial("NOT_A_REAL_MATERIAL"));
+    }
+
+    /** What an install whose recipes.yml predates the rename reads on a current server. */
+    @Test
+    void readSymbolsAcceptsTheOldNameOfARenamedMaterial() {
+        Map<String, Material> ingredients = ConfigService.readSymbols(
+                symbolsFrom("symbols:\n  G: GRASS\n"), "beet_salad");
+
+        assertNotNull(ingredients);
+        assertEquals(Material.SHORT_GRASS, ingredients.get("G"));
+    }
+
     @Test
     void readSymbolsRejectsAMultiCharacterSymbol() {
         assertNull(ConfigService.readSymbols(symbolsFrom("symbols:\n  WW: WHEAT\n"), "stew"));
