@@ -20,7 +20,7 @@ recipes:
       - " W "
     symbols:
       B: "BEETROOT"
-      G: "GRASS"
+      G: "SHORT_GRASS"
       W: "BOWL"
     afterEatItem: "BOWL"
     hungerDecrease: 3

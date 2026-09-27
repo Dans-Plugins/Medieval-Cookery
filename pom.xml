@@ -53,23 +53,18 @@
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
-        <repository>
-            <id>minecraft-repo</id>
-            <url>https://libraries.minecraft.net/</url>
-        </repository>
     </repositories>
 
     <dependencies>
+        <!-- 1.18.1 is the first API with PlayerProfile, which is how a head is given a texture
+             without reflection into CraftBukkit. 1.20.4 is the last API in which Material's
+             properties are plain enum methods: from 1.20.5 on, Material.isInteractable() looks the
+             answer up in the server's registry, and the tests, which run with no server, cannot
+             reach it. The plugin itself runs on any server from 1.18.1 on. -->
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.16.1-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <version>1.5.21</version>
+            <version>1.20.4-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

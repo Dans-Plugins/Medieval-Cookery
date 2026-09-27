@@ -65,7 +65,10 @@ skipped when:
 - it has no `name`;
 - it has no `symbols` section, or that section declares no symbols;
 - one of its symbols is longer than a single character;
-- one of its symbols names no material, or names a material Bukkit does not recognise;
+- one of its symbols names no material, or names a material Bukkit does not recognise. A
+  material Minecraft has renamed is recognised under either of its names: `GRASS` and
+  `SHORT_GRASS` (renamed in 1.20.3) both work on every server, so a `recipes.yml` written
+  before the rename keeps working after a server upgrade;
 - its `recipe` pattern is not exactly 3 rows of exactly 3 characters;
 - its pattern uses a character the `symbols` section does not declare, or declares a symbol
   the pattern never uses.
@@ -76,4 +79,6 @@ from being crafted:
 - an `afterEatItem` naming a material Bukkit does not recognise is logged, and the recipe
   loads with no after-eat behaviour;
 - a `textureBase64` value that is absent or shorter than 20 characters is not logged, and the
-  food is a default-skinned player head carrying the configured display name.
+  food is a default-skinned player head carrying the configured display name. A value that is
+  long enough but holds no skin URL is treated the same way, and a skin the server refuses —
+  it accepts only `textures.minecraft.net` — is logged with the reason.

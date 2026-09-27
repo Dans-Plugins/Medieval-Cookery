@@ -9,7 +9,7 @@ making any changes.
 - Language: Java
 - Build tool: Maven
 - Target platform: Spigot / Paper (Minecraft plugin)
-- API version: 1.16+
+- API version: 1.18.1+ (compiled against the 1.20.4 API)
 
 ## Project Structure
 
