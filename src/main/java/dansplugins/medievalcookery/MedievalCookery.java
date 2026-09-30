@@ -48,14 +48,14 @@ public class MedievalCookery extends JavaPlugin {
         // so there is nothing else to report. The usage-reporting block is on disk for every
         // server: config.yml did not exist before usage reporting, and saveDefaultConfig()
         // above writes the bundled file whenever it is absent.
-        trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName())
+        trace = TraceClient.builder(configService.getUsageReportingEndpoint(), getName(), getDescription().getVersion())
                 .key(configService.getUsageReportingKey())
                 .enabled(configService.isUsageReportingEnabled())
                 .serverWideConfig(getDataFolder().getParentFile())
                 .logger(getLogger())
                 .build();
         logUsageReportingState();
-        trace.report("startup", null, Collections.singletonMap("version", getDescription().getVersion()));
+        trace.report("startup");
     }
 
     // Said on every startup so an operator can see reporting is on, and why it is off, from
