@@ -6,7 +6,7 @@ Medieval Cookery is a Spigot plugin that adds craftable medieval-themed food ite
 
 ## Installation
 
-The plugin runs on Spigot (or a fork such as Paper) 1.18.1 or newer. An older server refuses to load it with an "unsupported API version" message.
+The plugin runs on Spigot (or a fork such as Paper) 1.18.1 or newer. An older server refuses to load it with an "unsupported API version" message. The versions every release is tested on are listed under [Supported Minecraft Versions](README.md#supported-minecraft-versions) in the README.
 
 1. Download the latest `Medieval-Cookery-<version>.jar` from the [Releases](https://github.com/Dans-Plugins/Medieval-Cookery/releases) page.
 2. Place the JAR in your server's `plugins/` folder.
@@ -40,6 +40,8 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 ## Known Limitations
 
 A food eaten from the off-hand is not recognised — only the main hand starts a meal.
+
+A food is recognised by its display name alone: any player head named after a recipe (in any letter case) can be eaten, and a food renamed in an anvil can no longer be eaten.
 
 ## Support
 
