@@ -9,6 +9,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.profile.PlayerProfile;
 
 import java.net.MalformedURLException;
@@ -60,6 +61,8 @@ public class CustomFoodRecipe {
             }
         }
         meta.setDisplayName(name);
+        // The tag, not the name, is what identifies the food once crafted (see CustomFoodItem).
+        meta.getPersistentDataContainer().set(medievalCookery.getFoodTagKey(), PersistentDataType.STRING, key);
         item.setItemMeta(meta);
 
         return item;
@@ -107,6 +110,11 @@ public class CustomFoodRecipe {
         }
     }
 
+    /** The skin this recipe's food is textured with, or null when it has none. */
+    public URL skin() {
+        return skinUrlOf(texture);
+    }
+
     /**
      * The id of the profile a food head carries, derived from its texture so that it is the same
      * on every startup: a head crafted before a restart still stacks with one crafted after it.
@@ -123,6 +131,7 @@ public class CustomFoodRecipe {
         this.medievalCookery = medievalCookery;
         key = recipeKey;
         name = recipeName;
+        this.texture = texture;
 
         afterEatItem = afterEatItemMaterial;
         ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), texture);

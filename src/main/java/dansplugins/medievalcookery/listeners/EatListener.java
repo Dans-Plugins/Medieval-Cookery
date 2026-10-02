@@ -1,6 +1,6 @@
 package dansplugins.medievalcookery.listeners;
 
-import dansplugins.medievalcookery.CustomFoodItem;
+import dansplugins.medievalcookery.CustomFoodRecipe;
 import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.Material;
@@ -40,8 +40,8 @@ public class EatListener implements Listener {
             return;
         }
 
-        String foodName = CustomFoodItem.nameOf(event.getItem());
-        if (foodName == null || !medievalCookery.hasRecipeName(foodName)) {
+        CustomFoodRecipe recipe = medievalCookery.recipeOf(event.getItem());
+        if (recipe == null) {
             return;
         }
 
@@ -54,7 +54,7 @@ public class EatListener implements Listener {
             return;
         }
 
-        medievalCookery.startPlayerEating(player, foodName);
+        medievalCookery.startPlayerEating(player, recipe.key);
         DelayedExecution delayedExecution = new DelayedExecution(medievalCookery);
         BukkitTask eatingSound = delayedExecution.PlayEatingSound(player);
         delayedExecution.ConsumeItemInMainHand(player, EATING_DURATION_TICKS, eatingSound);

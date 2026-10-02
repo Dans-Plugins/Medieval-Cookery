@@ -41,7 +41,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 
 A food eaten from the off-hand is not recognised — only the main hand starts a meal.
 
-A food is recognised by its display name alone: any player head named after a recipe (in any letter case) can be eaten, and a food renamed in an anvil can no longer be eaten.
+A food crafted before foods were tagged with their recipe is recognised by its display name together with its skin. Such a food renamed in an anvil can no longer be eaten, and one whose recipe has no `textureBase64` cannot be eaten at all, since it cannot be told apart from an ordinary player head given the same name. Foods crafted since then are recognised by their tag, so they can be renamed freely, and a player head renamed after a recipe is not a food.
 
 ## Support
 
