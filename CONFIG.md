@@ -51,7 +51,7 @@ server copy is removed or updated by hand.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `pluginVersion` | No | Version marker at the top of the file. Present in the bundled default but not currently read by the plugin. |
-| `recipes.<id>.name` | Yes | Display name of the food item. Recipe lookup matches on this name case-insensitively and returns the first match, so names should be unique. A crafted food is recognised by this name alone, so changing it leaves foods already crafted under the old name uneatable. |
+| `recipes.<id>.name` | Yes | Display name of the food item. A crafted food is tagged with its recipe's `<id>` and recognised by that tag, so the name can be changed without stranding foods already crafted; changing the `<id>` does strand them. Foods crafted before the tag existed are matched on this name, case-insensitively, together with the recipe's skin, so for those the name should stay unique and unchanged. |
 | `recipes.<id>.recipe` | Yes | 3×3 crafting grid pattern, as a list of exactly 3 strings. A space means "empty slot". |
 | `recipes.<id>.symbols` | Yes | Maps single pattern characters to Bukkit material names (for example `W: "WHEAT"`). |
 | `recipes.<id>.hungerDecrease` | No | Duration, in ticks, of the Saturation potion effect applied after the food is eaten. Defaults to `1` when omitted. |

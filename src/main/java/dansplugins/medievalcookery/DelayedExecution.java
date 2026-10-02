@@ -60,16 +60,16 @@ public class DelayedExecution {
         if (!medievalCookery.isPlayerEating(player)) {
             return;
         }
-        String itemName = medievalCookery.getPlayerEatingItemName(player);
+        String recipeId = medievalCookery.getPlayerEatingRecipeId(player);
         medievalCookery.endPlayerEating(player);
 
-        CustomFoodRecipe recipe = medievalCookery.getRecipeByName(itemName);
+        CustomFoodRecipe recipe = medievalCookery.getRecipeById(recipeId);
         if (recipe == null) {
             return;
         }
 
         ItemStack inHand = player.getInventory().getItemInMainHand();
-        if (!itemName.equals(CustomFoodItem.nameOf(inHand))) {
+        if (medievalCookery.recipeOf(inHand) != recipe) {
             return;
         }
         if (inHand.getAmount() > 1) {
@@ -80,7 +80,7 @@ public class DelayedExecution {
         }
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
-        player.sendMessage(ChatColor.GRAY + "You ate a " + itemName + ", it was delicious.");
+        player.sendMessage(ChatColor.GRAY + "You ate a " + recipe.name + ", it was delicious.");
         if (recipe.afterEatItem != null) {
             player.getInventory().addItem(new ItemStack(recipe.afterEatItem, 1));
         }
