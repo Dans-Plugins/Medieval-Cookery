@@ -25,7 +25,11 @@ Recipes are shaped, and use the symbols you define in the 'symbols' list of your
 
 ## Usage reporting
 
-Usage reporting is on by default: when the plugin is enabled it sends its name and version (the plugin has no commands, so `startup` is its only event) to https://trace.danielstephenson.dev so it is known which plugins are actually in use. Nothing about players, worlds, IPs or the server is sent. The plugin says on every startup whether reporting is on. To turn it off:
+Usage reporting is on by default: when the plugin is enabled it sends its name and version (the plugin has no commands, so `startup` is its only event) to https://trace.danielstephenson.dev so it is known which plugins are actually in use. Nothing about players, worlds or IPs is sent. The plugin says on every startup whether reporting is on. Each event also carries a random server ID (the `server-id` line in `plugins/trace/config.yml`) so
+servers can be counted rather than events. It identifies no person, account or IP address; delete
+the line to get a new one.
+
+To turn it off:
 
 - `usage-reporting.enabled: false` in this plugin's `config.yml`
 - for every plugin on the server that reports to trace: `enabled: false` in `plugins/trace/config.yml` (written by the first such plugin to start)
