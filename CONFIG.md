@@ -21,7 +21,7 @@ unless the block is added and `enabled` set to `false`.
 When the plugin is enabled, a small event is sent to the author's
 [trace](https://github.com/Stephenson-Software/trace-client-java) server so it is known which
 plugins are actually in use. An event carries the plugin's name, the event name (`startup`), and
-the plugin version — nothing about players, the world, or the server. Medieval Cookery has no
+the plugin version, plus a random server ID (the `server-id` line in `plugins/trace/config.yml`, which identifies no person, account or IP address; deleting the line gets a new one) — nothing about players or the world. Medieval Cookery has no
 commands, so `startup` is the only event it sends. Sending happens off the main thread, never
 delays a tick, and is dropped silently if the server cannot be reached. Set
 `usage-reporting.enabled` to `false` to turn it off. Two other switches win over that setting:
