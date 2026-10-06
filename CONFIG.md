@@ -29,7 +29,7 @@ delays a tick, and is dropped silently if the server cannot be reached. Set
 that reports to trace (the file is written by the first such plugin to start), and the environment
 variables `TRACE_USAGE_REPORTING=off` and `DO_NOT_TRACK=1` turn it off for the whole process. The
 plugin says on every startup whether reporting is on, and why it is off. Details:
-https://github.com/Stephenson-Software/trace#usage-reporting.
+https://danielstephenson.dev/usage-reporting.
 
 ## recipes.yml
 
