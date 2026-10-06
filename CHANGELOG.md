@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- The usage-reporting "Details" link (startup notice, `config.yml` and the docs) now points at https://danielstephenson.dev/usage-reporting, a public page; the previous link led to a private repository and returned 404 for everyone. The vendored trace client is now 0.6.1, which carries the same link in the `plugins/trace/config.yml` header it writes. Details: https://github.com/Stephenson-Software/trace-client-java/releases/tag/0.6.1.
 - Documentation corrected against the source. `USER_GUIDE.md` records that a food is recognised by its display name alone — any player head named after a recipe can be eaten, and an anvil-renamed food cannot — and points to the README's tested-version list; `CONFIG.md` notes that changing a recipe's `name` leaves foods crafted under the old name uneatable.
 - The vendored trace client is now 0.4.0, which tags every usage event with the plugin version. The plugin sends only `startup`, which already carried it, so what is sent is unchanged.
 - The plugin now requires Spigot 1.18.1 or newer (`api-version: 1.18`), and is compiled against the 1.20.4 API instead of 1.16.1. 1.18.1 is the first version with the `PlayerProfile` API, which is now how a food head gets its texture; an older server refuses to load the jar rather than failing part-way through recipe loading. The `com.mojang:authlib` dependency, which only the removed reflection used, is gone. Building now needs JDK 17 or newer, because the API jar is compiled for Java 17.
