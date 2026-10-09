@@ -33,7 +33,7 @@ https://danielstephenson.dev/usage-reporting.
 
 ## recipes.yml
 
-## Where recipes.yml Lives
+### Where recipes.yml Lives
 
 On first startup the plugin writes its bundled default `recipes.yml` into its own data
 folder, and it is that copy which is read on every subsequent startup. The data folder is
@@ -46,7 +46,7 @@ An existing `recipes.yml` in the data folder is never overwritten by a plugin up
 so recipes added to the bundled default in a later version are not picked up until the
 server copy is removed or updated by hand.
 
-## recipes.yml Fields
+### recipes.yml Fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
