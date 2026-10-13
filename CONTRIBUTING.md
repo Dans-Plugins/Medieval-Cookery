@@ -52,7 +52,7 @@ requires:
 See [CONFIG.md](CONFIG.md) for how each field is read and what happens when one is
 missing or invalid. `RecipesResourceTest` checks the bundled file against this schema, so
 a new recipe that omits a required field, declares an unused symbol or names a material
-Bukkit does not recognise fails the build.
+Bukkit does not recognise, or one with no item form, fails the build.
 
 ## Reporting Issues
 
