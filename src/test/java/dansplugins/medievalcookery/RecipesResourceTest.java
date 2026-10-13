@@ -78,6 +78,8 @@ class RecipesResourceTest {
             String material = symbols.getString(symbol, "");
             assertNotNull(Material.getMaterial(material), key + " symbol '" + symbol
                     + "' references unknown material '" + material + "'");
+            assertTrue(Material.getMaterial(material).isItem(), key + " symbol '" + symbol
+                    + "' references '" + material + "', which has no item form");
         }
     }
 
@@ -118,6 +120,8 @@ class RecipesResourceTest {
         if (!afterEatItem.isEmpty()) {
             assertNotNull(Material.getMaterial(afterEatItem),
                     key + " 'afterEatItem' references unknown material '" + afterEatItem + "'");
+            assertTrue(Material.getMaterial(afterEatItem).isItem(),
+                    key + " 'afterEatItem' references '" + afterEatItem + "', which has no item form");
         }
     }
 }
