@@ -69,6 +69,9 @@ skipped when:
   material Minecraft has renamed is recognised under either of its names: `GRASS` and
   `SHORT_GRASS` (renamed in 1.20.3) both work on every server, so a `recipes.yml` written
   before the rename keeps working after a server upgrade;
+- one of its symbols names a material that has no item form, such as `CARROTS` (the planted
+  crop, where the item is `CARROT`), `WATER` or `AIR`, which could never be placed in a
+  crafting grid;
 - its `recipe` pattern is not exactly 3 rows of exactly 3 characters;
 - its pattern uses a character the `symbols` section does not declare, or declares a symbol
   the pattern never uses.
@@ -76,8 +79,8 @@ skipped when:
 Two other values are tolerated rather than skipping the recipe, because neither prevents it
 from being crafted:
 
-- an `afterEatItem` naming a material Bukkit does not recognise is logged, and the recipe
-  loads with no after-eat behaviour;
+- an `afterEatItem` naming a material Bukkit does not recognise, or one with no item form, is
+  logged, and the recipe loads with no after-eat behaviour;
 - a `textureBase64` value that is absent or shorter than 20 characters is not logged, and the
   food is a default-skinned player head carrying the configured display name. A value that is
   long enough but holds no skin URL is treated the same way, and a skin the server refuses —

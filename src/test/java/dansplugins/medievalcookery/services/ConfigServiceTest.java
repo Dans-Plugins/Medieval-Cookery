@@ -74,6 +74,52 @@ class ConfigServiceTest {
         assertNull(ConfigService.readSymbols(symbolsFrom("symbols:\n  W: NOT_A_REAL_MATERIAL\n"), "stew"));
     }
 
+    @Test
+    void readSymbolsRejectsAMaterialThatExistsOnlyAsABlock() {
+        // CARROTS is the planted crop; the item a player holds is CARROT.
+        assertNull(ConfigService.readSymbols(symbolsFrom("symbols:\n  W: CARROTS\n"), "stew"));
+    }
+
+    @Test
+    void readSymbolsRejectsAir() {
+        assertNull(ConfigService.readSymbols(symbolsFrom("symbols:\n  W: AIR\n"), "stew"));
+    }
+
+    // --- item materials --------------------------------------------------------------------
+
+    @Test
+    void anItemMaterialIsHoldable() {
+        assertTrue(ConfigService.isHoldableItem(Material.CARROT));
+        assertTrue(ConfigService.isHoldableItem(Material.BOWL));
+    }
+
+    @Test
+    void aBlockOnlyMaterialOrAirIsNotHoldable() {
+        assertFalse(ConfigService.isHoldableItem(Material.CARROTS));
+        assertFalse(ConfigService.isHoldableItem(Material.WATER));
+        assertFalse(ConfigService.isHoldableItem(Material.AIR));
+    }
+
+    @Test
+    void afterEatItemNamingAnItemIsKept() {
+        assertEquals(Material.BOWL, ConfigService.readAfterEatItem("BOWL", "Beet Salad"));
+    }
+
+    @Test
+    void afterEatItemLeftEmptyGivesNothing() {
+        assertNull(ConfigService.readAfterEatItem("", "Beet Salad"));
+    }
+
+    @Test
+    void afterEatItemNamingAnUnknownMaterialGivesNothing() {
+        assertNull(ConfigService.readAfterEatItem("NOT_A_REAL_MATERIAL", "Beet Salad"));
+    }
+
+    @Test
+    void afterEatItemNamingABlockOnlyMaterialGivesNothing() {
+        assertNull(ConfigService.readAfterEatItem("WATER", "Beet Salad"));
+    }
+
     // --- renamed materials -----------------------------------------------------------------
     //
     // The API this project compiles against is from after GRASS became SHORT_GRASS, so the

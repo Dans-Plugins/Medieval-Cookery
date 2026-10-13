@@ -100,13 +100,7 @@ public class ConfigService {
                 continue;
             }
 
-            Material mat = null;
-            if (!afterEatItem.isEmpty()) {
-                mat = resolveMaterial(afterEatItem);
-                if (mat == null) {
-                    System.out.println("[MedievalCookery] Error: Could not load material '" + afterEatItem + "' defined in the key afterEatItem of recipe '" + recipeName + "' in recipes.yml. Recipe will still load but with no afterEatItem behaviour.");
-                }
-            }
+            Material mat = readAfterEatItem(afterEatItem, recipeName);
 
             recipeList.add(new CustomFoodRecipe(recipeKey, recipeName, recipeShape, ingredients, texture, medievalCookery, hunger, mat));
             System.out.println("Loaded recipe " + recipeName);
@@ -121,7 +115,7 @@ public class ConfigService {
      * Returns null when the mapping cannot be used as configured, so that the caller skips
      * that single recipe rather than letting a malformed entry stop the whole plugin from
      * enabling. Every symbol is resolved to a material here, so a recipe that reaches
-     * {@link CustomFoodRecipe} is known to name only materials Bukkit recognises.
+     * {@link CustomFoodRecipe} is known to name only items Bukkit recognises.
      */
     static Map<String, Material> readSymbols(ConfigurationSection symbols, String recipeKey) {
         if (symbols == null) {
@@ -144,6 +138,10 @@ public class ConfigService {
                 System.out.println("Error in recipe '" + recipeKey + "': the symbol '" + symbol + "' references a material '" + matName + "' which could not be found.");
                 return null;
             }
+            if (!isHoldableItem(material)) {
+                System.out.println("Error in recipe '" + recipeKey + "': the symbol '" + symbol + "' references the material '" + matName + "', which has no item form and so can never be placed in a crafting grid.");
+                return null;
+            }
             ingredients.put(symbol, material);
         }
         if (ingredients.isEmpty()) {
@@ -151,6 +149,38 @@ public class ConfigService {
             return null;
         }
         return ingredients;
+    }
+
+    /**
+     * Reads one recipe's optional {@code afterEatItem}, or returns null when there is none to give.
+     *
+     * An unusable value does not skip the recipe, because the food can still be crafted and eaten
+     * without it: a name Bukkit does not recognise, or a material with no item form that could not
+     * be put in an inventory, is reported and the recipe loads with no after-eat behaviour.
+     */
+    static Material readAfterEatItem(String name, String recipeName) {
+        if (name.isEmpty()) {
+            return null;
+        }
+        Material material = resolveMaterial(name);
+        if (material == null) {
+            System.out.println("[MedievalCookery] Error: Could not load material '" + name + "' defined in the key afterEatItem of recipe '" + recipeName + "' in recipes.yml. Recipe will still load but with no afterEatItem behaviour.");
+            return null;
+        }
+        if (!isHoldableItem(material)) {
+            System.out.println("[MedievalCookery] Error: The material '" + name + "' defined in the key afterEatItem of recipe '" + recipeName + "' in recipes.yml has no item form. Recipe will still load but with no afterEatItem behaviour.");
+            return null;
+        }
+        return material;
+    }
+
+    /**
+     * Reports whether a material can be held as an item. Some materials exist only as blocks:
+     * {@code CARROTS} is the planted crop and {@code CARROT} the item. Air is no item at all.
+     * Neither can be placed in a crafting grid or given to a player.
+     */
+    static boolean isHoldableItem(Material material) {
+        return material.isItem() && !material.isAir();
     }
 
     /**
