@@ -1,6 +1,7 @@
 package dansplugins.medievalcookery;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,6 +50,13 @@ class RecipesResourceTest {
     @Test
     void bundledFileDefinesAtLeastOneRecipe() {
         assertTrue(recipeKeys().count() > 0, "recipes.yml defines no recipes");
+    }
+
+    @ParameterizedTest
+    @MethodSource("recipeKeys")
+    void recipeIdIsAValidNamespacedKey(String key) {
+        assertDoesNotThrow(() -> new NamespacedKey("medievalcookery", key),
+                key + " is not a valid recipe key; ConfigService skips such a recipe");
     }
 
     @ParameterizedTest

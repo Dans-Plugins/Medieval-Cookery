@@ -1,6 +1,8 @@
 package dansplugins.medievalcookery.services;
 
+import dansplugins.medievalcookery.CustomFoodRecipe;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -231,6 +235,58 @@ class ConfigServiceTest {
         assertEquals("Hearty Stew", configService.getRecipeConfig().getString("recipes.stew.name"));
         assertEquals(7, configService.getRecipeConfig().getInt("recipes.stew.hungerDecrease"));
     }
+
+    // --- recipe ids ------------------------------------------------------------------------
+
+    private static final String[] USABLE_IDS = {"salmon_roll", "fish.stew-2", "stews/fish", "2"};
+    private static final String[] UNUSABLE_IDS = {"Fish_Stew", "fish stew", "fish:stew", "fishstew!", "pâté"};
+
+    @Test
+    void anIdOfLowercaseLettersDigitsAndPunctuationBukkitAllowsIsUsable() {
+        for (String id : USABLE_IDS) {
+            assertTrue(ConfigService.isRecipeIdUsable(id), id);
+        }
+    }
+
+    @Test
+    void anIdWithAnUppercaseLetterSpaceOrOtherCharacterIsNotUsable() {
+        for (String id : UNUSABLE_IDS) {
+            assertFalse(ConfigService.isRecipeIdUsable(id), id);
+        }
+    }
+
+    /** The check stands in for NamespacedKey's own, so the two must agree on every case above. */
+    @Test
+    void theIdCheckAgreesWithNamespacedKey() {
+        for (String id : USABLE_IDS) {
+            assertEquals("medievalcookery:" + id, new NamespacedKey("medievalcookery", id).toString());
+        }
+        for (String id : UNUSABLE_IDS) {
+            assertThrows(IllegalArgumentException.class, () -> new NamespacedKey("medievalcookery", id), id);
+        }
+    }
+
+    /**
+     * Everything about this entry is usable except its id, so it reaches the id check rather than
+     * being skipped for some other reason first, and without the check would go on to be
+     * constructed — which fails, and before the fix took the whole plugin down with it.
+     */
+    @Test
+    void loadRecipesSkipsAnEntryWhoseIdBukkitWouldRejectInsteadOfThrowing(@TempDir Path dataFolder) throws IOException {
+        ConfigService configService = serviceReading(dataFolder,
+                "recipes:\n"
+                        + "  Fish_Stew:\n"
+                        + "    name: Fish Stew\n"
+                        + "    recipe: [' S ', ' C ', ' B ']\n"
+                        + "    symbols:\n      S: SALMON\n      C: CARROT\n      B: BOWL\n"
+                        + "    hungerDecrease: 6\n");
+
+        List<CustomFoodRecipe> recipes = configService.loadRecipes();
+
+        assertNotNull(recipes);
+        assertTrue(recipes.isEmpty());
+    }
+
     // --- usage reporting -------------------------------------------------------------------
 
     /** The bundled config.yml, read from the classpath the way JavaPlugin registers it as defaults. */

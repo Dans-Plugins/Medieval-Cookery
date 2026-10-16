@@ -51,6 +51,7 @@ server copy is removed or updated by hand.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `pluginVersion` | No | Version marker at the top of the file. Present in the bundled default but not currently read by the plugin. |
+| `recipes.<id>` | Yes | One entry per recipe. The `<id>` is the key Bukkit registers the recipe under (`medievalcookery:<id>`), so it may contain only lowercase letters, digits, `/`, `.`, `_` and `-` — for example `fish_stew`, not `Fish_Stew` or `fish stew`. |
 | `recipes.<id>.name` | Yes | Display name of the food item. A crafted food is tagged with its recipe's `<id>` and recognised by that tag, so the name can be changed without stranding foods already crafted; changing the `<id>` does strand them. Foods crafted before the tag existed are matched on this name, case-insensitively, together with the recipe's skin, so for those the name should stay unique and unchanged. |
 | `recipes.<id>.recipe` | Yes | 3×3 crafting grid pattern, as a list of exactly 3 strings. A space means "empty slot". |
 | `recipes.<id>.symbols` | Yes | Maps single pattern characters to Bukkit material names (for example `W: "WHEAT"`). |
@@ -62,6 +63,7 @@ A recipe entry that cannot be used as configured is skipped, and the reason is l
 the entry's id. The remaining recipes still load, and the plugin still enables. An entry is
 skipped when:
 
+- its `<id>` contains a character other than a lowercase letter, a digit, `/`, `.`, `_` or `-`;
 - it has no `name`;
 - it has no `symbols` section, or that section declares no symbols;
 - one of its symbols is longer than a single character;

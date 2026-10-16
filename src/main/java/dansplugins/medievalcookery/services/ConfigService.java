@@ -16,6 +16,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public class ConfigService {
     private static final String USAGE_REPORTING_ENABLED_KEY = "usage-reporting.enabled";
@@ -30,6 +31,9 @@ public class ConfigService {
         RENAMED_MATERIALS.put("GRASS", "SHORT_GRASS");
         RENAMED_MATERIALS.put("SHORT_GRASS", "GRASS");
     }
+
+    // The characters Bukkit's NamespacedKey accepts in a key; see isRecipeIdUsable.
+    private static final Pattern VALID_RECIPE_ID = Pattern.compile("[a-z0-9/._-]+");
 
     private final MedievalCookery medievalCookery;
 
@@ -88,6 +92,9 @@ public class ConfigService {
             String afterEatItem = recipesConfig.getString("recipes." + recipeKey + ".afterEatItem", "");
             String texture = recipesConfig.getString("recipes." + recipeKey + ".textureBase64", "");
 
+            if (!isRecipeIdUsable(recipeKey)) {
+                continue;
+            }
             if (recipeName.isEmpty()) {
                 System.out.println("Error loading recipe " + recipeKey + ": no 'name' is configured.");
                 continue;
@@ -107,6 +114,23 @@ public class ConfigService {
         }
         System.out.println(String.format("Loaded %d custom recipes.", recipeList.size()));
         return recipeList;
+    }
+
+    /**
+     * Checks that a recipe's id can be used as the key Bukkit registers the recipe under.
+     *
+     * {@link CustomFoodRecipe} registers each recipe as {@code medievalcookery:<id>}, and Bukkit's
+     * {@code NamespacedKey} throws from its constructor for a key holding anything other than
+     * lowercase letters, digits, {@code /}, {@code .}, {@code _} and {@code -}. An id such as
+     * {@code Fish_Stew} or {@code fish stew} is an easy one to write, so it is reported and the
+     * recipe is skipped, rather than the exception stopping the whole plugin from enabling.
+     */
+    static boolean isRecipeIdUsable(String recipeKey) {
+        if (!VALID_RECIPE_ID.matcher(recipeKey).matches()) {
+            System.out.println("Error in recipe '" + recipeKey + "': its id may contain only lowercase letters, digits, '/', '.', '_' and '-', which Bukkit requires of a recipe key.");
+            return false;
+        }
+        return true;
     }
 
     /**
