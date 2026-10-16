@@ -40,8 +40,9 @@ as part of the build.
 ## Adding Recipes
 
 New recipes are defined in `src/main/resources/recipes.yml`, which is the default copied
-to `plugins/MedievalCookery/recipes.yml` on a server's first startup. Each recipe entry
-requires:
+to `plugins/MedievalCookery/recipes.yml` on a server's first startup. Each recipe entry's
+id (its key under `recipes:`) may contain only lowercase letters, digits, `/`, `.`, `_`
+and `-`, because Bukkit registers the recipe under it. Each recipe entry requires:
 - `name` — display name
 - `recipe` — 3×3 crafting grid pattern, as a list of exactly 3 strings
 - `symbols` — material mappings for pattern characters
@@ -51,7 +52,7 @@ requires:
 
 See [CONFIG.md](CONFIG.md) for how each field is read and what happens when one is
 missing or invalid. `RecipesResourceTest` checks the bundled file against this schema, so
-a new recipe that omits a required field, declares an unused symbol or names a material
+a new recipe with an invalid id, one that omits a required field, declares an unused symbol or names a material
 Bukkit does not recognise, or one with no item form, fails the build.
 
 ## Reporting Issues
