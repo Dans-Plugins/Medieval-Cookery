@@ -10,7 +10,7 @@ Recipes are shaped, and use the symbols you define in the 'symbols' list of your
 
 - Each recipe's id (its key under 'recipes:') may contain only lowercase letters, digits, '/', '.', '_' and '-' (for example 'fish_stew'). A recipe with any other id is skipped, and the reason is logged at startup.
 
-- 'hungerDecrease' is the number of ticks that the Saturation potion effect lasts for once this item has been consumed.  The more filling the item, the longer the effect.
+- 'hungerDecrease' is the number of ticks that the Saturation potion effect lasts for once this item has been consumed.  The more filling the item, the longer the effect. It must be at least 1; a value of 0 or less is logged at startup and replaced with 1.
 
 - 'afterEatItem' is the item the player ends up with after consuming the food item (for example: a wooden bowl used in the recipe ingredients can be given back)
 

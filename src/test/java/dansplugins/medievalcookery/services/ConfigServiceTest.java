@@ -124,6 +124,23 @@ class ConfigServiceTest {
         assertNull(ConfigService.readAfterEatItem("WATER", "Beet Salad"));
     }
 
+    @Test
+    void aPositiveHungerDecreaseIsKept() {
+        assertEquals(7, ConfigService.readHungerDecrease(7, "Steak Sandwich"));
+    }
+
+    @Test
+    void aZeroHungerDecreaseFallsBackToTheDefault() {
+        assertEquals(1, ConfigService.readHungerDecrease(0, "Steak Sandwich"));
+    }
+
+    // -1 is Bukkit's infinite potion duration, so it must not reach the Saturation effect.
+    @Test
+    void aNegativeHungerDecreaseFallsBackToTheDefault() {
+        assertEquals(1, ConfigService.readHungerDecrease(-1, "Steak Sandwich"));
+        assertEquals(1, ConfigService.readHungerDecrease(-40, "Steak Sandwich"));
+    }
+
     // --- renamed materials -----------------------------------------------------------------
     //
     // The API this project compiles against is from after GRASS became SHORT_GRASS, so the
