@@ -35,6 +35,9 @@ public class ConfigService {
     // The characters Bukkit's NamespacedKey accepts in a key; see isRecipeIdUsable.
     private static final Pattern VALID_RECIPE_ID = Pattern.compile("[a-z0-9/._-]+");
 
+    // The Saturation duration, in ticks, of a recipe with no usable hungerDecrease.
+    private static final int DEFAULT_HUNGER_DECREASE = 1;
+
     private final MedievalCookery medievalCookery;
 
     private final File recipesFile;
@@ -88,7 +91,7 @@ public class ConfigService {
 
             String recipeName = recipesConfig.getString("recipes." + recipeKey + ".name", "");
             String[] recipeShape = recipesConfig.getStringList("recipes." + recipeKey + ".recipe").toArray(new String[0]);
-            int hunger = recipesConfig.getInt("recipes." + recipeKey + ".hungerDecrease", 1);
+            int hunger = recipesConfig.getInt("recipes." + recipeKey + ".hungerDecrease", DEFAULT_HUNGER_DECREASE);
             String afterEatItem = recipesConfig.getString("recipes." + recipeKey + ".afterEatItem", "");
             String texture = recipesConfig.getString("recipes." + recipeKey + ".textureBase64", "");
 
@@ -108,6 +111,7 @@ public class ConfigService {
             }
 
             Material mat = readAfterEatItem(afterEatItem, recipeName);
+            hunger = readHungerDecrease(hunger, recipeName);
 
             recipeList.add(new CustomFoodRecipe(recipeKey, recipeName, recipeShape, ingredients, texture, medievalCookery, hunger, mat));
             System.out.println("Loaded recipe " + recipeName);
@@ -196,6 +200,24 @@ public class ConfigService {
             return null;
         }
         return material;
+    }
+
+    /**
+     * Reads one recipe's {@code hungerDecrease}, the duration in ticks of the Saturation effect
+     * the food applies.
+     *
+     * A value below 1 is reported and replaced with the default, which is what an omitted value
+     * gets. Zero would give no effect at all, and -1 is Bukkit's infinite potion duration, so a
+     * food configured with it would grant Saturation that never wears off. Like an unusable
+     * {@code afterEatItem}, this does not skip the recipe, because the food can still be crafted
+     * and eaten.
+     */
+    static int readHungerDecrease(int ticks, String recipeName) {
+        if (ticks < 1) {
+            System.out.println("[MedievalCookery] Error: The hungerDecrease " + ticks + " of recipe '" + recipeName + "' in recipes.yml must be a positive number of ticks. Recipe will still load with the default of " + DEFAULT_HUNGER_DECREASE + ".");
+            return DEFAULT_HUNGER_DECREASE;
+        }
+        return ticks;
     }
 
     /**
