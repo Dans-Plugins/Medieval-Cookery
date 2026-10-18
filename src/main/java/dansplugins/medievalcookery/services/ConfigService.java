@@ -91,7 +91,7 @@ public class ConfigService {
 
             String recipeName = recipesConfig.getString("recipes." + recipeKey + ".name", "");
             String[] recipeShape = recipesConfig.getStringList("recipes." + recipeKey + ".recipe").toArray(new String[0]);
-            int hunger = recipesConfig.getInt("recipes." + recipeKey + ".hungerDecrease", DEFAULT_HUNGER_DECREASE);
+            Object hungerValue = recipesConfig.get("recipes." + recipeKey + ".hungerDecrease");
             String afterEatItem = recipesConfig.getString("recipes." + recipeKey + ".afterEatItem", "");
             String texture = recipesConfig.getString("recipes." + recipeKey + ".textureBase64", "");
 
@@ -111,7 +111,7 @@ public class ConfigService {
             }
 
             Material mat = readAfterEatItem(afterEatItem, recipeName);
-            hunger = readHungerDecrease(hunger, recipeName);
+            int hunger = readHungerDecrease(hungerValue, recipeName);
 
             recipeList.add(new CustomFoodRecipe(recipeKey, recipeName, recipeShape, ingredients, texture, medievalCookery, hunger, mat));
             System.out.println("Loaded recipe " + recipeName);
@@ -206,13 +206,24 @@ public class ConfigService {
      * Reads one recipe's {@code hungerDecrease}, the duration in ticks of the Saturation effect
      * the food applies.
      *
-     * A value below 1 is reported and replaced with the default, which is what an omitted value
-     * gets. Zero would give no effect at all, and -1 is Bukkit's infinite potion duration, so a
-     * food configured with it would grant Saturation that never wears off. Like an unusable
-     * {@code afterEatItem}, this does not skip the recipe, because the food can still be crafted
+     * An omitted value (null) gets the default. A value that is not a number, such as
+     * {@code lots} or a quoted {@code "5"}, is reported and replaced with the default, where
+     * {@code getInt} would have replaced it silently. Any number is accepted, as {@code getInt}
+     * accepts it, and a decimal is truncated in the same way. A value below 1 is reported and replaced with the
+     * default too. Zero would give no effect at all, and -1 is Bukkit's infinite potion duration,
+     * so a food configured with it would grant Saturation that never wears off. Like an unusable
+     * {@code afterEatItem}, none of this skips the recipe, because the food can still be crafted
      * and eaten.
      */
-    static int readHungerDecrease(int ticks, String recipeName) {
+    static int readHungerDecrease(Object value, String recipeName) {
+        if (value == null) {
+            return DEFAULT_HUNGER_DECREASE;
+        }
+        if (!(value instanceof Number)) {
+            System.out.println("[MedievalCookery] Error: The hungerDecrease '" + value + "' of recipe '" + recipeName + "' in recipes.yml is not a number. Recipe will still load with the default of " + DEFAULT_HUNGER_DECREASE + ".");
+            return DEFAULT_HUNGER_DECREASE;
+        }
+        int ticks = ((Number) value).intValue();
         if (ticks < 1) {
             System.out.println("[MedievalCookery] Error: The hungerDecrease " + ticks + " of recipe '" + recipeName + "' in recipes.yml must be a positive number of ticks. Recipe will still load with the default of " + DEFAULT_HUNGER_DECREASE + ".");
             return DEFAULT_HUNGER_DECREASE;
