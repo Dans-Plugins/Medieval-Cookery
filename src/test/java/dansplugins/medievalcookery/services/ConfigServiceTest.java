@@ -9,10 +9,12 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -45,6 +47,20 @@ class ConfigServiceTest {
 
     private static Set<String> declared(String... symbols) {
         return new HashSet<String>(Arrays.asList(symbols));
+    }
+
+    // ConfigService reports a configuration mistake on standard output, so a test that checks
+    // the report has to capture it.
+    private static String printedBy(Runnable action) {
+        PrintStream original = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(captured, true));
+        try {
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
+        return new String(captured.toByteArray(), StandardCharsets.UTF_8);
     }
 
     @Test
@@ -139,6 +155,37 @@ class ConfigServiceTest {
     void aNegativeHungerDecreaseFallsBackToTheDefault() {
         assertEquals(1, ConfigService.readHungerDecrease(-1, "Steak Sandwich"));
         assertEquals(1, ConfigService.readHungerDecrease(-40, "Steak Sandwich"));
+    }
+
+    // An omitted hungerDecrease is optional, so it gets the default without an error.
+    @Test
+    void anOmittedHungerDecreaseFallsBackToTheDefaultSilently() {
+        int[] ticks = new int[1];
+        String printed = printedBy(() -> ticks[0] = ConfigService.readHungerDecrease(null, "Steak Sandwich"));
+        assertEquals(1, ticks[0]);
+        assertEquals("", printed);
+    }
+
+    // getInt already returned the default for these, so what the fix adds is the error. The
+    // values are read from YAML rather than passed as literals, so that they are whatever types
+    // the real parser produces for these spellings.
+    @Test
+    void aNonNumericHungerDecreaseIsReportedAndFallsBackToTheDefault() {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new StringReader("a: lots\nb: \"7\"\nc: true\n"));
+        for (String key : new String[] {"a", "b", "c"}) {
+            int[] ticks = new int[1];
+            String printed = printedBy(() -> ticks[0] = ConfigService.readHungerDecrease(config.get(key), "Steak Sandwich"));
+            assertEquals(1, ticks[0], key);
+            assertTrue(printed.contains("hungerDecrease '" + config.get(key) + "' of recipe 'Steak Sandwich'")
+                    && printed.contains("is not a number"), key + " was not reported: " + printed);
+        }
+    }
+
+    @Test
+    void aDecimalHungerDecreaseIsTruncatedAsGetIntWouldTruncateIt() {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(new StringReader("a: 7.9\nb: 0.5\n"));
+        assertEquals(7, ConfigService.readHungerDecrease(config.get("a"), "Steak Sandwich"));
+        assertEquals(1, ConfigService.readHungerDecrease(config.get("b"), "Steak Sandwich"));
     }
 
     // --- renamed materials -----------------------------------------------------------------
