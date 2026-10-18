@@ -1,4 +1,9 @@
 # Medieval Cookery
+
+![Server console lines as Medieval Cookery registers its five default recipes](docs/images/default-recipes.png)
+
+*Real server console output from Medieval Cookery 0.2.0 (built from `main`) on a local throwaway Paper 1.21.11 test server: the five default recipes being registered when the plugin enables.*
+
 This Minecraft plugin allows server owners to add cooking recipes for an enhanced roleplay experience. 
 
 ## Supported Minecraft Versions
