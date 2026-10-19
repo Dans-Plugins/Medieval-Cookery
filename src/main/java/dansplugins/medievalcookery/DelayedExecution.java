@@ -91,8 +91,8 @@ public class DelayedExecution {
      *
      * The article agrees with the first visible letter of the name, so a recipe a server owner
      * names {@code Apple Pie} reads "an Apple Pie". A colour code in front of the name is skipped
-     * over, since it is not shown. Going by the letter rather than the sound is wrong for a name
-     * such as {@code Unicorn Stew}, which no recipe needs a pronunciation dictionary to avoid.
+     * over, since it is not shown. Going by the letter rather than the sound gets a name such as
+     * {@code Unicorn Stew} wrong; getting it right would take a pronunciation dictionary.
      */
     static String mealMessage(String foodName) {
         String visible = ChatColor.stripColor(foodName);
