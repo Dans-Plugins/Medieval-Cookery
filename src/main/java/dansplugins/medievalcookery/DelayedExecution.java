@@ -80,9 +80,23 @@ public class DelayedExecution {
         }
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
-        player.sendMessage(ChatColor.GRAY + "You ate a " + recipe.name + ", it was delicious.");
+        player.sendMessage(ChatColor.GRAY + mealMessage(recipe.name));
         if (recipe.afterEatItem != null) {
             player.getInventory().addItem(new ItemStack(recipe.afterEatItem, 1));
         }
+    }
+
+    /**
+     * The message that confirms a finished meal.
+     *
+     * The article agrees with the first visible letter of the name, so a recipe a server owner
+     * names {@code Apple Pie} reads "an Apple Pie". A colour code in front of the name is skipped
+     * over, since it is not shown. Going by the letter rather than the sound gets a name such as
+     * {@code Unicorn Stew} wrong; getting it right would take a pronunciation dictionary.
+     */
+    static String mealMessage(String foodName) {
+        String visible = ChatColor.stripColor(foodName);
+        boolean vowel = !visible.isEmpty() && "AEIOUaeiou".indexOf(visible.charAt(0)) >= 0;
+        return "You ate " + (vowel ? "an " : "a ") + foodName + ", it was delicious.";
     }
 }
