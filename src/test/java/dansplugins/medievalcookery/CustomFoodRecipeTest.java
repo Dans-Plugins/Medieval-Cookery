@@ -1,5 +1,7 @@
 package dansplugins.medievalcookery;
 
+import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.junit.jupiter.api.Test;
@@ -8,9 +10,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * needs a running server, which creates the profile and validates the URL, so what is guarded
  * here is the reading of the value: every bundled texture must yield the skin URL the server
  * accepts, and a value that cannot yield one must leave the head with its default skin rather
- * than throw out of recipe loading.
+ * than throw out of recipe loading. Also covers taking the recipes back out of the server when
+ * the plugin is disabled.
  */
 class CustomFoodRecipeTest {
 
@@ -127,5 +133,33 @@ class CustomFoodRecipeTest {
     void profileIdsOfDifferentTexturesDiffer() {
         assertNotEquals(CustomFoodRecipe.profileIdOf(RECIPES.getString("recipes.salmon_roll.textureBase64")),
                 CustomFoodRecipe.profileIdOf(RECIPES.getString("recipes.beet_salad.textureBase64")));
+    }
+
+    @Test
+    void unregisterRemovesEveryRecipeFromTheServer() {
+        List<NamespacedKey> keys = new ArrayList<>();
+        for (String id : RECIPES.getConfigurationSection("recipes").getKeys(false)) {
+            keys.add(new NamespacedKey("medievalcookery", id));
+        }
+        List<Object> removed = new ArrayList<>();
+
+        CustomFoodRecipe.unregister(serverRecordingRemovedRecipes(removed), keys);
+
+        assertEquals(keys, removed, "a recipe left registered stays craftable while the plugin is disabled");
+    }
+
+    /**
+     * A server that records the key of each recipe removed from it. The real one only exists
+     * while a server is running, and nothing else of it is needed here.
+     */
+    private static Server serverRecordingRemovedRecipes(List<Object> removed) {
+        return (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class<?>[]{Server.class},
+                (proxy, method, args) -> {
+                    if (!method.getName().equals("removeRecipe")) {
+                        throw new UnsupportedOperationException(method.getName());
+                    }
+                    removed.add(args[0]);
+                    return true;
+                });
     }
 }

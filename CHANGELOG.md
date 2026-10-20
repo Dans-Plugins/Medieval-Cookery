@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- The plugin's recipes are removed from the server when it is disabled. Bukkit does not remove a plugin's recipes for it, so after the plugin was disabled on a running server (by a plugin manager, say) the foods could still be crafted, although nothing could eat them any more, and enabling it again added every recipe a second time under the same key.
 - The message that confirms a meal says "an" before a food whose name starts with a vowel. It always said "a", so a recipe added as `Apple Pie` told every player `You ate a Apple Pie, it was delicious.` The first letter after any colour code decides. The five bundled foods all start with a consonant, so their message is unchanged.
 - A `hungerDecrease` in `recipes.yml` that is not a number, such as `lots` or a quoted `"5"`, is now logged at startup. It was already replaced with the default of `1`, but silently, so a server owner who mistyped it got a 1-tick Saturation effect with no hint why. The recipe still loads.
 - A `hungerDecrease` of `0` or less in `recipes.yml` is no longer passed on to the Saturation effect. `-1` is Bukkit's infinite potion duration, so a food configured with it granted Saturation that never wore off, and `0` gave no effect at all. Such a value is now logged at startup and replaced with the default of `1`; the recipe still loads.

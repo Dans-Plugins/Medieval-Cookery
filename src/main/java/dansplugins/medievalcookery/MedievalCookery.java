@@ -81,6 +81,13 @@ public class MedievalCookery extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        List<NamespacedKey> recipeKeys = new ArrayList<>();
+        for (CustomFoodRecipe recipe : recipes) {
+            recipeKeys.add(recipe.namespacedKey);
+        }
+        CustomFoodRecipe.unregister(getServer(), recipeKeys);
+        recipes = new ArrayList<>();
+
         trace.close();
 
         System.out.println(("--- Disabling Medieval-Cookery --------"));
