@@ -6,6 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Server;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -17,6 +18,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,8 @@ public class CustomFoodRecipe {
 
     public String name = "";
     public String key = "";
+    /** The key the recipe is registered with Bukkit under, {@code medievalcookery:<key>}. */
+    public NamespacedKey namespacedKey;
     public String texture = "";
     public List<String> recipeShape = new ArrayList<String>();
     public int hungerDecrease = 2;
@@ -135,8 +139,8 @@ public class CustomFoodRecipe {
 
         afterEatItem = afterEatItemMaterial;
         ItemStack item = itemWithBase64(new ItemStack(Material.PLAYER_HEAD, 1), texture);
-        NamespacedKey nskey = new NamespacedKey(this.medievalCookery, key);
-        ShapedRecipe recipe = new ShapedRecipe(nskey, item);
+        namespacedKey = new NamespacedKey(this.medievalCookery, key);
+        ShapedRecipe recipe = new ShapedRecipe(namespacedKey, item);
         recipe.shape(shape[0], shape[1], shape[2]);
         hungerDecrease = hungerAmt;
         // Every symbol was resolved to a known material, and checked against the pattern, by
@@ -146,5 +150,18 @@ public class CustomFoodRecipe {
         }
         this.medievalCookery.getServer().addRecipe(recipe);
         System.out.println("Registered custom recipe " + recipeKey + " with Bukkit");
+    }
+
+    /**
+     * Takes recipes back out of the server.
+     *
+     * Bukkit does not remove a recipe when the plugin that added it is disabled. Left in place,
+     * a disabled plugin's foods could still be crafted, though nothing would make them edible,
+     * and enabling the plugin again would add every key a second time.
+     */
+    static void unregister(Server server, Collection<NamespacedKey> keys) {
+        for (NamespacedKey key : keys) {
+            server.removeRecipe(key);
+        }
     }
 }
