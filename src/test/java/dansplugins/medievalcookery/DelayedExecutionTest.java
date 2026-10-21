@@ -1,8 +1,6 @@
 package dansplugins.medievalcookery;
 
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -58,30 +56,26 @@ class DelayedExecutionTest {
         }
     }
 
-    /** With no room left, the bundled Beet Salad's Bowl lands at the player's feet instead of vanishing. */
+    /** With no room left, the bundled Beet Salad's Bowl is dropped instead of vanishing. */
     @Test
     void anAfterEatItemThatDoesNotFitIsDropped() {
         ItemStack bowl = bundledAfterEatItem("beet_salad");
         List<ItemStack> added = new ArrayList<>();
-        List<Object[]> dropped = new ArrayList<>();
-        Location feet = new Location(null, 1, 64, 2);
+        List<ItemStack> dropped = new ArrayList<>();
 
-        DelayedExecution.giveOrDrop(inventoryWithNoRoom(added), bowl, worldRecordingDrops(dropped), feet);
+        DelayedExecution.giveOrDrop(inventoryWithNoRoom(added), bowl, dropped::add);
 
         assertEquals(List.of(bowl), added);
-        assertEquals(1, dropped.size(), "the item that did not fit was lost");
-        assertEquals(feet, dropped.get(0)[0]);
-        assertEquals(bowl, dropped.get(0)[1]);
+        assertEquals(List.of(bowl), dropped, "the item that did not fit was lost");
     }
 
     @Test
     void anAfterEatItemThatFitsIsNotDropped() {
         ItemStack bowl = bundledAfterEatItem("rice_bowl");
         List<ItemStack> added = new ArrayList<>();
-        List<Object[]> dropped = new ArrayList<>();
+        List<ItemStack> dropped = new ArrayList<>();
 
-        DelayedExecution.giveOrDrop(inventoryWithRoom(added), bowl, worldRecordingDrops(dropped),
-                new Location(null, 0, 64, 0));
+        DelayedExecution.giveOrDrop(inventoryWithRoom(added), bowl, dropped::add);
 
         assertEquals(List.of(bowl), added);
         assertTrue(dropped.isEmpty(), "an item that fit was dropped as well");
@@ -120,18 +114,6 @@ class DelayedExecutionTest {
                         }
                     }
                     return leftovers;
-                });
-    }
-
-    /** A world that records the location and item of each drop made in it. */
-    private static World worldRecordingDrops(List<Object[]> dropped) {
-        return (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class<?>[]{World.class},
-                (proxy, method, args) -> {
-                    if (!method.getName().equals("dropItem") || args.length != 2) {
-                        throw new UnsupportedOperationException(method.getName());
-                    }
-                    dropped.add(args);
-                    return null;
                 });
     }
 
