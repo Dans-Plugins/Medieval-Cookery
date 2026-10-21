@@ -1,21 +1,29 @@
 package dansplugins.medievalcookery;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Proxy;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Covers the message that confirms a finished meal. Finishing the meal itself needs a live
- * player and so is left to the manual validation recorded on the pull request.
+ * Covers the message that confirms a finished meal, and how the after-eat item is handed back.
+ * Finishing the meal itself needs a live player and so is left to the manual validation recorded
+ * on the pull request.
  */
 class DelayedExecutionTest {
 
@@ -46,6 +54,67 @@ class DelayedExecutionTest {
             String name = recipes.getString("recipes." + id + ".name");
             assertTrue(DelayedExecution.mealMessage(name).startsWith("You ate a " + name), name);
         }
+    }
+
+    /** With no room left, the bundled Beet Salad's Bowl is dropped instead of vanishing. */
+    @Test
+    void anAfterEatItemThatDoesNotFitIsDropped() {
+        ItemStack bowl = bundledAfterEatItem("beet_salad");
+        List<ItemStack> added = new ArrayList<>();
+        List<ItemStack> dropped = new ArrayList<>();
+
+        DelayedExecution.giveOrDrop(inventoryWithNoRoom(added), bowl, dropped::add);
+
+        assertEquals(List.of(bowl), added);
+        assertEquals(List.of(bowl), dropped, "the item that did not fit was lost");
+    }
+
+    @Test
+    void anAfterEatItemThatFitsIsNotDropped() {
+        ItemStack bowl = bundledAfterEatItem("rice_bowl");
+        List<ItemStack> added = new ArrayList<>();
+        List<ItemStack> dropped = new ArrayList<>();
+
+        DelayedExecution.giveOrDrop(inventoryWithRoom(added), bowl, dropped::add);
+
+        assertEquals(List.of(bowl), added);
+        assertTrue(dropped.isEmpty(), "an item that fit was dropped as well");
+    }
+
+    private static ItemStack bundledAfterEatItem(String recipeId) {
+        String material = bundledRecipes().getString("recipes." + recipeId + ".afterEatItem");
+        assertNotNull(material, recipeId + " has no afterEatItem in recipes.yml");
+        return new ItemStack(Material.getMaterial(material), 1);
+    }
+
+    /**
+     * Inventories that record what is added to them and hand back the leftovers the way
+     * {@code addItem} does. The real ones only exist while a server is running.
+     */
+    private static Inventory inventoryWithNoRoom(List<ItemStack> added) {
+        return inventory(added, false);
+    }
+
+    private static Inventory inventoryWithRoom(List<ItemStack> added) {
+        return inventory(added, true);
+    }
+
+    private static Inventory inventory(List<ItemStack> added, boolean hasRoom) {
+        return (Inventory) Proxy.newProxyInstance(Inventory.class.getClassLoader(), new Class<?>[]{Inventory.class},
+                (proxy, method, args) -> {
+                    if (!method.getName().equals("addItem")) {
+                        throw new UnsupportedOperationException(method.getName());
+                    }
+                    ItemStack[] items = (ItemStack[]) args[0];
+                    HashMap<Integer, ItemStack> leftovers = new HashMap<>();
+                    for (int i = 0; i < items.length; i++) {
+                        added.add(items[i]);
+                        if (!hasRoom) {
+                            leftovers.put(i, items[i]);
+                        }
+                    }
+                    return leftovers;
+                });
     }
 
     private static YamlConfiguration bundledRecipes() {

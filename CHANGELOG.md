@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- A recipe's `afterEatItem` is dropped at the player's feet when their inventory has no room for it. It was lost instead, because what did not fit was never handed back to the world. That was the usual outcome for a player with a full inventory eating from a stack of more than one food, since the food's own slot stays occupied: Beet Salad and Bowl of Rice took their Bowl with them.
 - The plugin's recipes are removed from the server when it is disabled. Bukkit does not remove a plugin's recipes for it, so after the plugin was disabled on a running server (by a plugin manager, say) the foods could still be crafted, although nothing could eat them any more, and enabling it again added every recipe a second time under the same key.
 - The message that confirms a meal says "an" before a food whose name starts with a vowel. It always said "a", so a recipe added as `Apple Pie` told every player `You ate a Apple Pie, it was delicious.` The first letter after any colour code decides. The five bundled foods all start with a consonant, so their message is unchanged.
 - A `hungerDecrease` in `recipes.yml` that is not a number, such as `lots` or a quoted `"5"`, is now logged at startup. It was already replaced with the default of `1`, but silently, so a server owner who mistyped it got a 1-tick Saturation effect with no hint why. The recipe still loads.
