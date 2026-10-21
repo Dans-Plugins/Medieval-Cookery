@@ -2,8 +2,11 @@ package dansplugins.medievalcookery;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -82,7 +85,22 @@ public class DelayedExecution {
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
         player.sendMessage(ChatColor.GRAY + mealMessage(recipe.name));
         if (recipe.afterEatItem != null) {
-            player.getInventory().addItem(new ItemStack(recipe.afterEatItem, 1));
+            giveOrDrop(player.getInventory(), new ItemStack(recipe.afterEatItem, 1),
+                    player.getWorld(), player.getLocation());
+        }
+    }
+
+    /**
+     * Puts an item in an inventory, dropping at the given location whatever does not fit.
+     *
+     * {@code addItem} hands back what it could not place rather than dropping it, so with a full
+     * inventory the item would otherwise be lost. That is the usual case for an
+     * {@code afterEatItem} when more than one food is held, since the food's slot stays occupied.
+     * Vanilla drops the container in the same situation, as it does a honey bottle's glass bottle.
+     */
+    static void giveOrDrop(Inventory inventory, ItemStack item, World world, Location location) {
+        for (ItemStack leftover : inventory.addItem(item).values()) {
+            world.dropItem(location, leftover);
         }
     }
 
