@@ -17,13 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Covers the message that confirms a finished meal, and how the after-eat item is handed back.
- * Finishing the meal itself needs a live player and so is left to the manual validation recorded
- * on the pull request.
+ * Covers the message that confirms a finished meal, how the after-eat item is handed back, and
+ * which meals are completed at all. Finishing the meal itself needs a live player and so is left
+ * to the manual validation recorded on the pull request.
  */
 class DelayedExecutionTest {
 
@@ -79,6 +80,24 @@ class DelayedExecutionTest {
 
         assertEquals(List.of(bowl), added);
         assertTrue(dropped.isEmpty(), "an item that fit was dropped as well");
+    }
+
+    /** A player who quits mid-meal is not fed, and nothing is dropped where they logged out. */
+    @Test
+    void aMealIsNotFinishedForAPlayerWhoHasQuit() {
+        assertFalse(DelayedExecution.isMealToFinish(false, true));
+    }
+
+    @Test
+    void aMealIsFinishedForAPlayerStillEating() {
+        assertTrue(DelayedExecution.isMealToFinish(true, true));
+    }
+
+    /** A meal already ended, by a rejoin say, is not completed a second time. */
+    @Test
+    void aMealAlreadyEndedIsNotFinished() {
+        assertFalse(DelayedExecution.isMealToFinish(true, false));
+        assertFalse(DelayedExecution.isMealToFinish(false, false));
     }
 
     private static ItemStack bundledAfterEatItem(String recipeId) {
