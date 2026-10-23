@@ -58,8 +58,16 @@ public class DelayedExecution {
      * main hand before the last bite does not get to keep it, and a meal already ended by some
      * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
      * eating state is cleared either way, so an interrupted meal cannot block the next one.
+     *
+     * A player who quits before the last bite is left alone entirely. The task still holds their
+     * old {@code Player}, whose data was saved when they left, so taking the food from it would
+     * not stick, while an after-eat item that did not fit would be dropped into the world for
+     * real. The eating state that remains is cleared by {@code JoinListener} when they return.
      */
     void finishEating(Player player) {
+        if (!player.isOnline()) {
+            return;
+        }
         if (!medievalCookery.isPlayerEating(player)) {
             return;
         }
