@@ -57,8 +57,9 @@ public class DelayedExecution {
      * Nothing is applied if the meal was interrupted: a player who moves the food out of their
      * main hand before the last bite does not get to keep it, and a meal already ended by some
      * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
-     * eating state is cleared either way, so an interrupted meal cannot block the next one. A
-     * player who quits before the last bite is left alone entirely; see {@link #isMealToFinish}.
+     * eating state is cleared either way, so an interrupted meal cannot block the next one. The
+     * exception is a player who quits before the last bite, who is left alone entirely and whose
+     * eating state is cleared when they rejoin; see {@link #isMealToFinish}.
      */
     void finishEating(Player player) {
         if (!isMealToFinish(player.isOnline(), medievalCookery.isPlayerEating(player))) {
