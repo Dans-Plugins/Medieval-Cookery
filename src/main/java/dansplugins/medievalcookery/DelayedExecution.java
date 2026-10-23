@@ -57,18 +57,11 @@ public class DelayedExecution {
      * Nothing is applied if the meal was interrupted: a player who moves the food out of their
      * main hand before the last bite does not get to keep it, and a meal already ended by some
      * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
-     * eating state is cleared either way, so an interrupted meal cannot block the next one.
-     *
-     * A player who quits before the last bite is left alone entirely. The task still holds their
-     * old {@code Player}, whose data was saved when they left, so taking the food from it would
-     * not stick, while an after-eat item that did not fit would be dropped into the world for
-     * real. The eating state that remains is cleared by {@code JoinListener} when they return.
+     * eating state is cleared either way, so an interrupted meal cannot block the next one. A
+     * player who quits before the last bite is left alone entirely; see {@link #isMealToFinish}.
      */
     void finishEating(Player player) {
-        if (!player.isOnline()) {
-            return;
-        }
-        if (!medievalCookery.isPlayerEating(player)) {
+        if (!isMealToFinish(player.isOnline(), medievalCookery.isPlayerEating(player))) {
             return;
         }
         String recipeId = medievalCookery.getPlayerEatingRecipeId(player);
@@ -96,6 +89,19 @@ public class DelayedExecution {
             giveOrDrop(player.getInventory(), new ItemStack(recipe.afterEatItem, 1),
                     leftover -> player.getWorld().dropItem(player.getLocation(), leftover));
         }
+    }
+
+    /**
+     * Decides whether the task that ends a meal should complete it.
+     *
+     * A meal already ended by some other route is not completed. Neither is one whose player has
+     * quit: the task still holds their old {@code Player}, whose data was saved when they left,
+     * so taking the food from it would not stick, while an after-eat item that did not fit would
+     * be dropped into the world for real. The eating state such a player leaves behind is cleared
+     * by {@code JoinListener} when they return.
+     */
+    static boolean isMealToFinish(boolean online, boolean eating) {
+        return online && eating;
     }
 
     /**

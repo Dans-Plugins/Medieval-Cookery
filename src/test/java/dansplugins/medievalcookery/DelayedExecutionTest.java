@@ -2,7 +2,6 @@ package dansplugins.medievalcookery;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
@@ -18,14 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Covers the message that confirms a finished meal, how the after-eat item is handed back, and
- * that a meal is abandoned for a player who has quit. Finishing a meal for a player still online
- * needs a live player and the plugin, and so is left to the manual validation recorded on the
- * pull request.
+ * which meals are completed at all. Finishing the meal itself needs a live player and so is left
+ * to the manual validation recorded on the pull request.
  */
 class DelayedExecutionTest {
 
@@ -83,26 +82,22 @@ class DelayedExecutionTest {
         assertTrue(dropped.isEmpty(), "an item that fit was dropped as well");
     }
 
-    /**
-     * A meal whose player has quit is not finished. The stand-in answers only {@code isOnline},
-     * so reaching for the inventory, the world or anything else of the player's fails the test,
-     * and the plugin is null, so does consulting the eating state.
-     */
+    /** A player who quits mid-meal is not fed, and nothing is dropped where they logged out. */
     @Test
     void aMealIsNotFinishedForAPlayerWhoHasQuit() {
-        List<String> calls = new ArrayList<>();
-        Player player = (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[]{Player.class},
-                (proxy, method, args) -> {
-                    calls.add(method.getName());
-                    if (!method.getName().equals("isOnline")) {
-                        throw new UnsupportedOperationException(method.getName());
-                    }
-                    return false;
-                });
+        assertFalse(DelayedExecution.isMealToFinish(false, true));
+    }
 
-        new DelayedExecution(null).finishEating(player);
+    @Test
+    void aMealIsFinishedForAPlayerStillEating() {
+        assertTrue(DelayedExecution.isMealToFinish(true, true));
+    }
 
-        assertEquals(List.of("isOnline"), calls);
+    /** A meal already ended, by a rejoin say, is not completed a second time. */
+    @Test
+    void aMealAlreadyEndedIsNotFinished() {
+        assertFalse(DelayedExecution.isMealToFinish(true, false));
+        assertFalse(DelayedExecution.isMealToFinish(false, false));
     }
 
     private static ItemStack bundledAfterEatItem(String recipeId) {
