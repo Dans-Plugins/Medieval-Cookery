@@ -37,6 +37,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - Logging out before the meal finishes cancels it in the same way.
 - Right-clicking again while already eating does nothing; one meal has to finish before the next begins.
 - Right-clicking a block that has its own use — a chest, a door, a crafting table — opens that block instead of starting a meal, exactly as carrying a vanilla food does. Sneak while you right-click to eat in front of one.
+- A food cannot be placed as a block, from either hand.
 
 ## Known Limitations
 

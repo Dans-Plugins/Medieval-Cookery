@@ -2,6 +2,7 @@ package dansplugins.medievalcookery;
 
 import dansplugins.medievalcookery.listeners.EatListener;
 import dansplugins.medievalcookery.listeners.JoinListener;
+import dansplugins.medievalcookery.listeners.PlaceListener;
 import dansplugins.medievalcookery.services.ConfigService;
 import dansplugins.medievalcookery.trace.TraceClient;
 import org.bukkit.NamespacedKey;
@@ -50,6 +51,7 @@ public class MedievalCookery extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new JoinListener(this), this);
         getServer().getPluginManager().registerEvents(new EatListener(this), this);
+        getServer().getPluginManager().registerEvents(new PlaceListener(this), this);
 
         // usage reporting: one event on enable; see config.yml. The plugin has no commands,
         // so there is nothing else to report. The usage-reporting block is on disk for every
