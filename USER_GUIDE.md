@@ -34,7 +34,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - One food is then taken from your hand, a Saturation effect is applied for the number of ticks the recipe's `hungerDecrease` sets, and a message confirms the meal.
 - If the recipe sets an `afterEatItem`, that item is added to your inventory, or dropped at your feet if your inventory has no room for it. Beet Salad and Bowl of Rice return the Bowl used to craft them.
 - Moving the food out of your main hand before the meal finishes cancels it. No food is consumed and no effect is applied in that case.
-- Logging out before the meal finishes cancels it in the same way.
+- Logging out before the meal finishes cancels it in the same way, and so does dying. With keepInventory on, the food is still in your hand when you respawn.
 - Right-clicking again while already eating does nothing; one meal has to finish before the next begins.
 - Right-clicking a block that has its own use — a chest, a door, a crafting table — opens that block instead of starting a meal, exactly as carrying a vanilla food does. Sneak while you right-click to eat in front of one.
 - A food cannot be placed as a block, from either hand.

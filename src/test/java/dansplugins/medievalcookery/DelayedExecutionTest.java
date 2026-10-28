@@ -100,6 +100,23 @@ class DelayedExecutionTest {
         assertFalse(DelayedExecution.isMealToFinish(false, false));
     }
 
+    /** With keepInventory on, the food is still in the hand of a player who died mid-meal. */
+    @Test
+    void aPlayerWhoDiedMidMealDoesNotEatTheFood() {
+        assertFalse(DelayedExecution.isFoodToBeEaten(true, true));
+    }
+
+    @Test
+    void aLivingPlayerStillHoldingTheFoodEatsIt() {
+        assertTrue(DelayedExecution.isFoodToBeEaten(false, true));
+    }
+
+    @Test
+    void aFoodMovedOutOfTheHandIsNotEaten() {
+        assertFalse(DelayedExecution.isFoodToBeEaten(false, false));
+        assertFalse(DelayedExecution.isFoodToBeEaten(true, false));
+    }
+
     private static ItemStack bundledAfterEatItem(String recipeId) {
         String material = bundledRecipes().getString("recipes." + recipeId + ".afterEatItem");
         assertNotNull(material, recipeId + " has no afterEatItem in recipes.yml");
