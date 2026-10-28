@@ -55,7 +55,8 @@ public class DelayedExecution {
      * Completes one eating session: the food leaves the player's hand and its effects are applied.
      *
      * Nothing is applied if the meal was interrupted: a player who moves the food out of their
-     * main hand before the last bite does not get to keep it, and a meal already ended by some
+     * main hand before the last bite does not get to keep it, a player who has died in the
+     * meantime does not eat it (see {@link #isFoodToBeEaten}), and a meal already ended by some
      * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
      * eating state is cleared either way, so an interrupted meal cannot block the next one. The
      * exception is a player who quits before the last bite, who is left alone entirely and whose
@@ -74,7 +75,7 @@ public class DelayedExecution {
         }
 
         ItemStack inHand = player.getInventory().getItemInMainHand();
-        if (medievalCookery.recipeOf(inHand) != recipe) {
+        if (!isFoodToBeEaten(player.isDead(), medievalCookery.recipeOf(inHand) == recipe)) {
             return;
         }
         if (inHand.getAmount() > 1) {
@@ -103,6 +104,19 @@ public class DelayedExecution {
      */
     static boolean isMealToFinish(boolean online, boolean eating) {
         return online && eating;
+    }
+
+    /**
+     * Decides whether a meal that is being finished takes the food and applies its effects.
+     *
+     * The food has to still be in the main hand. The player also has to be alive. With
+     * keepInventory on, the food stays in the hand of a player who dies mid-meal, and eating it on
+     * the death screen would take the food and give nothing back, because potion effects do not
+     * survive the respawn. The eating state has been cleared by this point either way, so the
+     * player can eat again after respawning.
+     */
+    static boolean isFoodToBeEaten(boolean dead, boolean stillHeld) {
+        return !dead && stillHeld;
     }
 
     /**
