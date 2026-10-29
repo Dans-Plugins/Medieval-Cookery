@@ -41,7 +41,7 @@ Survival flavour:
 - [SimpleSkills](https://github.com/Dans-Plugins/SimpleSkills) ([SpigotMC](https://www.spigotmc.org/resources/simpleskills.98039/), `/dpm get simpleskills`): skills that level up as players play and unlock benefits.
 - [More Recipes](https://github.com/Dans-Plugins/More-Recipes) ([SpigotMC](https://www.spigotmc.org/resources/more-recipes.81832/), `/dpm get morerecipes`): recipes for items that cannot be crafted in vanilla.
 
-Every plugin above is listed on [dansplugins.com](https://dansplugins.com). Medieval Cookery is listed at [dansplugins.com/resources/medieval-cookery](https://dansplugins.com/resources/medieval-cookery); it has no stable release yet, so [Dan's Plugin Manager](https://github.com/Dans-Plugins/Dans-Plugin-Manager) cannot install it until one is published.
+Every plugin above is listed on [dansplugins.com](https://dansplugins.com). Medieval Cookery is listed at [dansplugins.com/resources/medieval-cookery](https://dansplugins.com/resources/medieval-cookery), and [Dan's Plugin Manager](https://github.com/Dans-Plugins/Dans-Plugin-Manager) installs it with `/dpm get medievalcookery`.
 
 ## Documentation
 
@@ -67,3 +67,6 @@ Details: https://danielstephenson.dev/usage-reporting
 
 ## Adoption
 This project was adopted by the Dan's Plugins Community on June 5th, 2022.
+
+## License
+Medieval Cookery is open source under the [Apache License 2.0](LICENSE).
