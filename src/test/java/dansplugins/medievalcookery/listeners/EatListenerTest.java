@@ -1,5 +1,6 @@
 package dansplugins.medievalcookery.listeners;
 
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.event.block.Action;
 import org.junit.jupiter.api.Test;
@@ -53,5 +54,24 @@ class EatListenerTest {
     @Test
     void clickingAirIsNeverABlockInteraction() {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_AIR, null, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"SURVIVAL", "ADVENTURE", "CREATIVE"})
+    void aHungryPlayerCanEat(GameMode gameMode) {
+        assertTrue(EatListener.canEat(19, gameMode));
+        assertTrue(EatListener.canEat(0, gameMode));
+    }
+
+    /** The food would be taken while the Saturation effect could give nothing back. */
+    @ParameterizedTest
+    @EnumSource(names = {"SURVIVAL", "ADVENTURE"})
+    void aFullPlayerCannotEat(GameMode gameMode) {
+        assertFalse(EatListener.canEat(20, gameMode));
+    }
+
+    @Test
+    void aCreativePlayerCanEatWhenFull() {
+        assertTrue(EatListener.canEat(20, GameMode.CREATIVE));
     }
 }
