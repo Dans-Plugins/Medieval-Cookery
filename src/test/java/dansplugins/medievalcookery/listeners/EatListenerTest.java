@@ -63,7 +63,7 @@ class EatListenerTest {
         assertTrue(EatListener.canEat(0, gameMode));
     }
 
-    /** The food would be taken while the Saturation effect could give nothing back. */
+    /** The food would be taken while the Saturation effect could not raise the food level. */
     @ParameterizedTest
     @EnumSource(names = {"SURVIVAL", "ADVENTURE"})
     void aFullPlayerCannotEat(GameMode gameMode) {
