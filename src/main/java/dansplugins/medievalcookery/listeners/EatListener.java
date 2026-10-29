@@ -3,6 +3,7 @@ package dansplugins.medievalcookery.listeners;
 import dansplugins.medievalcookery.CustomFoodRecipe;
 import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,6 +25,9 @@ public class EatListener implements Listener {
 
     /** Vanilla takes 32 ticks to finish eating a food item, and the custom foods take the same. */
     public static final int EATING_DURATION_TICKS = 32;
+
+    /** A full hunger bar, at which vanilla does not let a player eat an ordinary food. */
+    static final int MAX_FOOD_LEVEL = 20;
 
     private final MedievalCookery medievalCookery;
 
@@ -53,6 +57,9 @@ public class EatListener implements Listener {
         if (medievalCookery.isPlayerEating(player)) {
             return;
         }
+        if (!canEat(player.getFoodLevel(), player.getGameMode())) {
+            return;
+        }
 
         medievalCookery.startPlayerEating(player, recipe.key);
         DelayedExecution delayedExecution = new DelayedExecution(medievalCookery);
@@ -67,6 +74,17 @@ public class EatListener implements Listener {
      */
     static boolean isEatingGesture(Action action) {
         return action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
+    }
+
+    /**
+     * Decides whether a player is hungry enough to begin a meal.
+     *
+     * Vanilla only starts eating an ordinary food when the hunger bar is below full, or when the
+     * player is in creative mode. A full player's right-click would otherwise cost them the food,
+     * since the Saturation effect cannot raise a food level that is already at its maximum.
+     */
+    static boolean canEat(int foodLevel, GameMode gameMode) {
+        return foodLevel < MAX_FOOD_LEVEL || gameMode == GameMode.CREATIVE;
     }
 
     /**
