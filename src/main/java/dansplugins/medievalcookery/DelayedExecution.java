@@ -2,6 +2,7 @@ package dansplugins.medievalcookery;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -53,6 +54,8 @@ public class DelayedExecution {
 
     /**
      * Completes one eating session: the food leaves the player's hand and its effects are applied.
+     * In creative mode the food stays in the hand and no after-eat item is given; see
+     * {@link #isFoodTaken}.
      *
      * Nothing is applied if the meal was interrupted: a player who moves the food out of their
      * main hand before the last bite does not get to keep it, a player who has died in the
@@ -78,16 +81,19 @@ public class DelayedExecution {
         if (!isFoodToBeEaten(player.isDead(), medievalCookery.recipeOf(inHand) == recipe)) {
             return;
         }
-        if (inHand.getAmount() > 1) {
-            inHand.setAmount(inHand.getAmount() - 1);
-            player.getInventory().setItemInMainHand(inHand);
-        } else {
-            player.getInventory().setItemInMainHand(null);
+        boolean takesFood = isFoodTaken(player.getGameMode());
+        if (takesFood) {
+            if (inHand.getAmount() > 1) {
+                inHand.setAmount(inHand.getAmount() - 1);
+                player.getInventory().setItemInMainHand(inHand);
+            } else {
+                player.getInventory().setItemInMainHand(null);
+            }
         }
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
         player.sendMessage(ChatColor.GRAY + mealMessage(recipe.name));
-        if (recipe.afterEatItem != null) {
+        if (takesFood && recipe.afterEatItem != null) {
             giveOrDrop(player.getInventory(), new ItemStack(recipe.afterEatItem, 1),
                     leftover -> player.getWorld().dropItem(player.getLocation(), leftover));
         }
@@ -117,6 +123,19 @@ public class DelayedExecution {
      */
     static boolean isFoodToBeEaten(boolean dead, boolean stillHeld) {
         return !dead && stillHeld;
+    }
+
+    /**
+     * Decides whether eating a food uses it up, which also decides whether its after-eat item is
+     * given.
+     *
+     * Vanilla leaves the held food in place for a player in creative mode, and gives no container
+     * back either: a creative player's mushroom stew stays a stew rather than becoming a Bowl.
+     * Taking the food and giving the {@code afterEatItem} anyway would hand a creative player a
+     * fresh Bowl for every Beet Salad eaten.
+     */
+    static boolean isFoodTaken(GameMode gameMode) {
+        return gameMode != GameMode.CREATIVE;
     }
 
     /**

@@ -1,11 +1,13 @@
 package dansplugins.medievalcookery;
 
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.InputStream;
@@ -115,6 +117,18 @@ class DelayedExecutionTest {
     void aFoodMovedOutOfTheHandIsNotEaten() {
         assertFalse(DelayedExecution.isFoodToBeEaten(false, false));
         assertFalse(DelayedExecution.isFoodToBeEaten(true, false));
+    }
+
+    /** Vanilla leaves a creative player's food in the hand, and gives no Bowl back for it. */
+    @Test
+    void aCreativePlayerKeepsTheFood() {
+        assertFalse(DelayedExecution.isFoodTaken(GameMode.CREATIVE));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = GameMode.class, names = {"SURVIVAL", "ADVENTURE"})
+    void aSurvivalOrAdventurePlayerUsesUpTheFood(GameMode gameMode) {
+        assertTrue(DelayedExecution.isFoodTaken(gameMode));
     }
 
     private static ItemStack bundledAfterEatItem(String recipeId) {

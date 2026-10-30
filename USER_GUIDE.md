@@ -36,6 +36,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - Moving the food out of your main hand before the meal finishes cancels it. No food is consumed and no effect is applied in that case.
 - Logging out before the meal finishes cancels it in the same way, and so does dying. With keepInventory on, the food is still in your hand when you respawn.
 - A meal only starts when your hunger bar is not full, as with a vanilla food. With a full hunger bar the right-click does nothing and the food is kept. In creative mode a meal starts regardless.
+- In creative mode the food stays in your hand and no `afterEatItem` is given, as with a vanilla food; the Saturation effect and the message still apply.
 - Right-clicking again while already eating does nothing; one meal has to finish before the next begins.
 - Right-clicking a block that has its own use — a chest, a door, a crafting table — opens that block instead of starting a meal, exactly as carrying a vanilla food does. Sneak while you right-click to eat in front of one.
 - A food cannot be placed as a block, from either hand.
