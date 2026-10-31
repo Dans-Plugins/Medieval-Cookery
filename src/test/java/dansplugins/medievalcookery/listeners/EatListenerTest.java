@@ -2,7 +2,10 @@ package dansplugins.medievalcookery.listeners;
 
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -73,5 +76,37 @@ class EatListenerTest {
     @Test
     void aCreativePlayerCanEatWhenFull() {
         assertTrue(EatListener.canEat(20, GameMode.CREATIVE));
+    }
+
+    /**
+     * A click in the air reaches the listener already cancelled, as there is no block to use.
+     * Treating that as a denial would stop every meal begun in the air.
+     */
+    @Test
+    void aClickInTheAirIsNotADenial() {
+        PlayerInteractEvent event = clicking(Action.RIGHT_CLICK_AIR);
+        assertTrue(event.isCancelled());
+        assertFalse(EatListener.isItemUseDenied(event));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"RIGHT_CLICK_AIR", "RIGHT_CLICK_BLOCK"})
+    void aClickAnotherPluginCancelledIsADenial(Action action) {
+        PlayerInteractEvent event = clicking(action);
+        event.setCancelled(true);
+        assertTrue(EatListener.isItemUseDenied(event));
+    }
+
+    @Test
+    void aDeniedItemUseIsADenialEvenWithTheBlockAllowed() {
+        PlayerInteractEvent event = clicking(Action.RIGHT_CLICK_BLOCK);
+        event.setUseInteractedBlock(Event.Result.ALLOW);
+        event.setUseItemInHand(Event.Result.DENY);
+        assertTrue(EatListener.isItemUseDenied(event));
+    }
+
+    /** Events construct without a server; the player and block are not read by the check. */
+    private static PlayerInteractEvent clicking(Action action) {
+        return new PlayerInteractEvent(null, action, new ItemStack(Material.PLAYER_HEAD), null, null);
     }
 }

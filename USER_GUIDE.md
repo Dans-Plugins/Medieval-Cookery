@@ -40,6 +40,7 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - Right-clicking again while already eating does nothing; one meal has to finish before the next begins.
 - Right-clicking a block that has its own use — a chest, a door, a crafting table — opens that block instead of starting a meal, exactly as carrying a vanilla food does. Sneak while you right-click to eat in front of one.
 - A food cannot be placed as a block, from either hand.
+- Where another plugin blocks the right-click — a protected region, a lobby, a jail — no meal starts and the food is kept, just as a vanilla food cannot be eaten there.
 
 ## Known Limitations
 
