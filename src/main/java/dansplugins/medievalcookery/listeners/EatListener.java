@@ -6,7 +6,9 @@ import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -35,9 +37,16 @@ public class EatListener implements Listener {
         this.medievalCookery = medievalCookery;
     }
 
-    @EventHandler
+    /**
+     * Runs at HIGH priority so that a plugin denying the click at NORMAL or below has done so
+     * before a meal is decided on; see {@link #isItemUseDenied}.
+     */
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteractEvent(PlayerInteractEvent event) {
         if (!isEatingGesture(event.getAction()) || event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
+        if (isItemUseDenied(event)) {
             return;
         }
         if (isBlockInteractionInstead(event.getAction(), clickedType(event), event.getPlayer().isSneaking())) {
@@ -74,6 +83,18 @@ public class EatListener implements Listener {
      */
     static boolean isEatingGesture(Action action) {
         return action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK;
+    }
+
+    /**
+     * Reports whether another plugin has denied the use of the held item for this click.
+     *
+     * A protection, lobby or jail plugin usually cancels the event, which sets
+     * {@code useItemInHand} to DENY, and the server then does not eat a vanilla food either.
+     * {@code isCancelled()} cannot be used instead: a right-click in the air reaches every
+     * listener already cancelled, because there is no block to use, while the item may still be.
+     */
+    static boolean isItemUseDenied(PlayerInteractEvent event) {
+        return event.useItemInHand() == Event.Result.DENY;
     }
 
     /**
