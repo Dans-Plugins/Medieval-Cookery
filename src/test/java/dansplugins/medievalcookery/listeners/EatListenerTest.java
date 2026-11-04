@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,6 +69,20 @@ class EatListenerTest {
     @EnumSource(names = {"OAK_FENCE_GATE", "BAMBOO_FENCE_GATE"})
     void aFenceGateKeepsItsOwnRightClick(Material material) {
         assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"OAK_FENCE", "NETHER_BRICK_FENCE"})
+    void aFenceIsRecognised(Material material) {
+        assertTrue(EatListener.isFence(material));
+    }
+
+    /** A click in the air has no block, and the listener asks about the lead only for a fence. */
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(names = {"OAK_FENCE_GATE", "PUMPKIN", "STONE"})
+    void nothingElseIsAFence(Material material) {
+        assertFalse(EatListener.isFence(material));
     }
 
     @Test
