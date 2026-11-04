@@ -15,6 +15,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 /**
  * Starts an eating session when a player right-clicks while holding one of the plugin's foods.
  *
@@ -30,6 +33,19 @@ public class EatListener implements Listener {
 
     /** A full hunger bar, at which vanilla does not let a player eat an ordinary food. */
     static final int MAX_FOOD_LEVEL = 20;
+
+    /** Every constant here must exist on the oldest supported server; see {@code api-version}. */
+    private static final Set<Material> BLOCKS_THAT_PASS_ON_A_FOOD = EnumSet.of(
+            Material.PUMPKIN,
+            Material.TNT,
+            Material.CAULDRON,
+            Material.WATER_CAULDRON,
+            Material.LAVA_CAULDRON,
+            Material.POWDER_SNOW_CAULDRON,
+            Material.BEEHIVE,
+            Material.BEE_NEST,
+            Material.CAMPFIRE,
+            Material.SOUL_CAMPFIRE);
 
     private final MedievalCookery medievalCookery;
 
@@ -120,7 +136,20 @@ public class EatListener implements Listener {
         return action == Action.RIGHT_CLICK_BLOCK
                 && !sneaking
                 && clickedBlockType != null
-                && clickedBlockType.isInteractable();
+                && clickedBlockType.isInteractable()
+                && !passesFoodClickToItem(clickedBlockType);
+    }
+
+    /**
+     * Reports whether a block's use is limited to items a food is not, such as a lead on a fence.
+     *
+     * {@link Material#isInteractable()} only says a block has some use. For these the click goes
+     * on to the held item, which would eat a vanilla food. Were the meal not started here, the
+     * head would be offered for placement, {@link PlaceListener} would refuse it, and the click
+     * would do nothing. Fences are matched by name because {@code Tag.FENCES} needs a server.
+     */
+    static boolean passesFoodClickToItem(Material blockType) {
+        return BLOCKS_THAT_PASS_ON_A_FOOD.contains(blockType) || blockType.name().endsWith("_FENCE");
     }
 
     private static Material clickedType(PlayerInteractEvent event) {

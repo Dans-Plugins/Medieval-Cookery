@@ -49,6 +49,27 @@ class EatListenerTest {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
     }
 
+    /**
+     * These report as interactable, but only react to particular items such as a lead or shears.
+     * Were they to keep the click, the head would be refused placement and nothing would happen.
+     */
+    @ParameterizedTest
+    @EnumSource(names = {
+            "OAK_FENCE", "BAMBOO_FENCE", "NETHER_BRICK_FENCE", "PUMPKIN", "TNT", "CAULDRON",
+            "WATER_CAULDRON", "LAVA_CAULDRON", "POWDER_SNOW_CAULDRON", "BEEHIVE", "BEE_NEST",
+            "CAMPFIRE", "SOUL_CAMPFIRE"})
+    void aBlockWithNoUseForAFoodDoesNotClaimTheRightClick(Material material) {
+        assertTrue(material.isInteractable());
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    /** The name match for fences must not reach a gate, which does open. */
+    @ParameterizedTest
+    @EnumSource(names = {"OAK_FENCE_GATE", "BAMBOO_FENCE_GATE"})
+    void aFenceGateKeepsItsOwnRightClick(Material material) {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
     @Test
     void sneakingSuppressesTheBlockAndAllowsTheMeal() {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHEST, true));

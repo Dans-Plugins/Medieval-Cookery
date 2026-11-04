@@ -13,7 +13,7 @@ import java.util.function.Predicate;
  *
  * {@link EatListener} cancels the right-click that begins a meal, but leaves alone a food held in
  * the off hand, and a click on a block with a use of its own, which can still pass the click on
- * to the item: a fence does unless a lead is involved. Vanilla places the head in either case.
+ * to the item: a jukebox does while it is empty. Vanilla places the head in either case.
  * A placed head does not keep the recipe tag the food is recognised by, so the head that drops
  * when the block is broken is no longer that food. Every route to placing one ends here.
  */
