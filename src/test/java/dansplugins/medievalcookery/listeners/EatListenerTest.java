@@ -9,6 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullSource;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,6 +48,41 @@ class EatListenerTest {
     @EnumSource(names = {"STONE", "DIRT", "OAK_PLANKS"})
     void anOrdinaryBlockDoesNotClaimTheRightClick(Material material) {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    /**
+     * These report as interactable, but only react to particular items such as a lead or shears.
+     * Were they to keep the click, the head would be refused placement and nothing would happen.
+     */
+    @ParameterizedTest
+    @EnumSource(names = {
+            "OAK_FENCE", "BAMBOO_FENCE", "NETHER_BRICK_FENCE", "PUMPKIN", "TNT", "CAULDRON",
+            "WATER_CAULDRON", "LAVA_CAULDRON", "POWDER_SNOW_CAULDRON", "BEEHIVE", "BEE_NEST",
+            "CAMPFIRE", "SOUL_CAMPFIRE"})
+    void aBlockWithNoUseForAFoodDoesNotClaimTheRightClick(Material material) {
+        assertTrue(material.isInteractable());
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    /** The name match for fences must not reach a gate, which does open. */
+    @ParameterizedTest
+    @EnumSource(names = {"OAK_FENCE_GATE", "BAMBOO_FENCE_GATE"})
+    void aFenceGateKeepsItsOwnRightClick(Material material) {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"OAK_FENCE", "NETHER_BRICK_FENCE"})
+    void aFenceIsRecognised(Material material) {
+        assertTrue(EatListener.isFence(material));
+    }
+
+    /** A click in the air has no block, and the listener asks about the lead only for a fence. */
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(names = {"OAK_FENCE_GATE", "PUMPKIN", "STONE"})
+    void nothingElseIsAFence(Material material) {
+        assertFalse(EatListener.isFence(material));
     }
 
     @Test

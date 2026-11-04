@@ -5,6 +5,8 @@ import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -14,6 +16,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitTask;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Starts an eating session when a player right-clicks while holding one of the plugin's foods.
@@ -30,6 +35,22 @@ public class EatListener implements Listener {
 
     /** A full hunger bar, at which vanilla does not let a player eat an ordinary food. */
     static final int MAX_FOOD_LEVEL = 20;
+
+    /** How far away a mob on a player's lead can be and still be tied to a clicked fence. */
+    private static final double LEAD_REACH_BLOCKS = 7.0;
+
+    /** Every constant here must exist on the oldest supported server; see {@code api-version}. */
+    private static final Set<Material> BLOCKS_THAT_PASS_ON_A_FOOD = EnumSet.of(
+            Material.PUMPKIN,
+            Material.TNT,
+            Material.CAULDRON,
+            Material.WATER_CAULDRON,
+            Material.LAVA_CAULDRON,
+            Material.POWDER_SNOW_CAULDRON,
+            Material.BEEHIVE,
+            Material.BEE_NEST,
+            Material.CAMPFIRE,
+            Material.SOUL_CAMPFIRE);
 
     private final MedievalCookery medievalCookery;
 
@@ -55,6 +76,9 @@ public class EatListener implements Listener {
 
         CustomFoodRecipe recipe = medievalCookery.recipeOf(event.getItem());
         if (recipe == null) {
+            return;
+        }
+        if (isFence(clickedType(event)) && !event.getPlayer().isSneaking() && isLeadingMob(event.getPlayer())) {
             return;
         }
 
@@ -120,7 +144,42 @@ public class EatListener implements Listener {
         return action == Action.RIGHT_CLICK_BLOCK
                 && !sneaking
                 && clickedBlockType != null
-                && clickedBlockType.isInteractable();
+                && clickedBlockType.isInteractable()
+                && !passesFoodClickToItem(clickedBlockType);
+    }
+
+    /**
+     * Reports whether a block's use is limited to items a food is not, such as a lead on a fence.
+     *
+     * {@link Material#isInteractable()} only says a block has some use. For these the click goes
+     * on to the held item, which would eat a vanilla food. Were the meal not started here, the
+     * head would be offered for placement, {@link PlaceListener} would refuse it, and the click
+     * would do nothing. Fences are matched by name because {@code Tag.FENCES} needs a server.
+     * A player leading a mob is the exception for a fence; see {@link #isLeadingMob}.
+     */
+    static boolean passesFoodClickToItem(Material blockType) {
+        return BLOCKS_THAT_PASS_ON_A_FOOD.contains(blockType) || isFence(blockType);
+    }
+
+    /** Reports whether a block is a fence, which a gate is not. */
+    static boolean isFence(Material blockType) {
+        return blockType != null && blockType.name().endsWith("_FENCE");
+    }
+
+    /**
+     * Reports whether a mob is on this player's lead. Clicking a fence ties it up whatever is in
+     * the player's hand, so that click is not free to become a meal.
+     */
+    private static boolean isLeadingMob(Player player) {
+        for (Entity entity : player.getNearbyEntities(LEAD_REACH_BLOCKS, LEAD_REACH_BLOCKS, LEAD_REACH_BLOCKS)) {
+            if (entity instanceof LivingEntity) {
+                LivingEntity mob = (LivingEntity) entity;
+                if (mob.isLeashed() && player.equals(mob.getLeashHolder())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static Material clickedType(PlayerInteractEvent event) {
