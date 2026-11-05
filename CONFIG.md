@@ -51,10 +51,10 @@ server copy is removed or updated by hand.
 | Field | Required | Description |
 |-------|----------|-------------|
 | `pluginVersion` | No | Version marker at the top of the file. Present in the bundled default but not currently read by the plugin. |
-| `recipes.<id>` | Yes | One entry per recipe. The `<id>` is the key Bukkit registers the recipe under (`medievalcookery:<id>`), so it may contain only lowercase letters, digits, `/`, `.`, `_` and `-` — for example `fish_stew`, not `Fish_Stew` or `fish stew`. |
+| `recipes.<id>` | Yes | One entry per recipe. The `<id>` is the key Bukkit registers the recipe under (`medievalcookery:<id>`), so it may contain only lowercase letters, digits, `/`, `_` and `-` — for example `fish_stew`, not `Fish_Stew`, `fish stew` or `fish.stew`. |
 | `recipes.<id>.name` | Yes | Display name of the food item. A crafted food is tagged with its recipe's `<id>` and recognised by that tag, so the name can be changed without stranding foods already crafted; changing the `<id>` does strand them. Foods crafted before the tag existed are matched on this name, case-insensitively, together with the recipe's skin, so for those the name should stay unique and unchanged. |
 | `recipes.<id>.recipe` | Yes | 3×3 crafting grid pattern, as a list of exactly 3 strings. A space means "empty slot". |
-| `recipes.<id>.symbols` | Yes | Maps single pattern characters to Bukkit material names (for example `W: "WHEAT"`). |
+| `recipes.<id>.symbols` | Yes | Maps single pattern characters to Bukkit material names (for example `W: "WHEAT"`). A `.` cannot be a symbol: it separates the levels of a YAML path here, so the entry is dropped when the file is read. |
 | `recipes.<id>.hungerDecrease` | No | Duration, in ticks, of the Saturation potion effect applied after the food is eaten. Must be a positive whole number. Defaults to `1` when omitted; a value that is not a number (such as `lots`, or a quoted `"5"`) or is `0` or less is logged as an error at startup and replaced with `1`, and the recipe still loads. |
 | `recipes.<id>.afterEatItem` | No | Bukkit material returned to the player after eating (for example `BOWL`). No item is returned when omitted. |
 | `recipes.<id>.textureBase64` | No | Base64-encoded skin texture used for the custom player-head item. |
@@ -63,7 +63,9 @@ A recipe entry that cannot be used as configured is skipped, and the reason is l
 the entry's id. The remaining recipes still load, and the plugin still enables. An entry is
 skipped when:
 
-- its `<id>` contains a character other than a lowercase letter, a digit, `/`, `.`, `_` or `-`;
+- its `<id>` contains a character other than a lowercase letter, a digit, `/`, `_` or `-`. A `.`
+  in an `<id>` is read as a nested section, so `fish.stew` is logged under that id and not loaded,
+  and is not a recipe `fish` either;
 - it has no `name`;
 - it has no `symbols` section, or that section declares no symbols;
 - one of its symbols is longer than a single character;

@@ -32,8 +32,9 @@ public class ConfigService {
         RENAMED_MATERIALS.put("SHORT_GRASS", "GRASS");
     }
 
-    // The characters Bukkit's NamespacedKey accepts in a key; see isRecipeIdUsable.
-    private static final Pattern VALID_RECIPE_ID = Pattern.compile("[a-z0-9/._-]+");
+    // The characters Bukkit's NamespacedKey accepts in a key, less the '.' a configuration path
+    // cannot hold; see isRecipeIdUsable.
+    private static final Pattern VALID_RECIPE_ID = Pattern.compile("[a-z0-9/_-]+");
 
     // The Saturation duration, in ticks, of a recipe with no usable hungerDecrease.
     private static final int DEFAULT_HUNGER_DECREASE = 1;
@@ -98,6 +99,7 @@ public class ConfigService {
             if (!isRecipeIdUsable(recipeKey)) {
                 continue;
             }
+            reportDottedIds(recipesConfig.getConfigurationSection("recipes." + recipeKey), recipeKey);
             if (recipeName.isEmpty()) {
                 System.out.println("Error loading recipe " + recipeKey + ": no 'name' is configured.");
                 continue;
@@ -128,13 +130,35 @@ public class ConfigService {
      * lowercase letters, digits, {@code /}, {@code .}, {@code _} and {@code -}. An id such as
      * {@code Fish_Stew} or {@code fish stew} is an easy one to write, so it is reported and the
      * recipe is skipped, rather than the exception stopping the whole plugin from enabling.
+     * {@code NamespacedKey} accepts {@code .} too, but a recipe file cannot deliver one; see
+     * {@link #reportDottedIds}.
      */
     static boolean isRecipeIdUsable(String recipeKey) {
         if (!VALID_RECIPE_ID.matcher(recipeKey).matches()) {
-            System.out.println("Error in recipe '" + recipeKey + "': its id may contain only lowercase letters, digits, '/', '.', '_' and '-', which Bukkit requires of a recipe key.");
+            System.out.println("Error in recipe '" + recipeKey + "': its id may contain only lowercase letters, digits, '/', '_' and '-', which Bukkit requires of a recipe key.");
             return false;
         }
         return true;
+    }
+
+    /**
+     * Reports any recipe that was written with a {@code .} in its id.
+     *
+     * {@code .} separates the levels of a configuration path, so {@code fish.stew:} is parsed as
+     * a {@code stew} section inside an entry {@code fish}, and the id as written is never seen.
+     * The only trace left is a section in the entry other than {@code symbols}, the one field
+     * that is a section. Without this report such a recipe is ignored, or blamed on a {@code fish}
+     * entry nobody wrote. {@code entry} is null when the value under the id is not a section.
+     */
+    static void reportDottedIds(ConfigurationSection entry, String recipeKey) {
+        if (entry == null) {
+            return;
+        }
+        for (String child : entry.getKeys(false)) {
+            if (entry.isConfigurationSection(child) && !child.equals("symbols")) {
+                System.out.println("Error in recipe '" + recipeKey + "." + child + "': a '.' in a recipe id is read as a nested section, so this recipe is not loaded. Use '_' or '-' in its id instead.");
+            }
+        }
     }
 
     /**

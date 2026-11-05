@@ -41,8 +41,8 @@ as part of the build.
 
 New recipes are defined in `src/main/resources/recipes.yml`, which is the default copied
 to `plugins/MedievalCookery/recipes.yml` on a server's first startup. Each recipe entry's
-id (its key under `recipes:`) may contain only lowercase letters, digits, `/`, `.`, `_`
-and `-`, because Bukkit registers the recipe under it. Each recipe entry requires:
+id (its key under `recipes:`) may contain only lowercase letters, digits, `/`, `_` and
+`-`, because Bukkit registers the recipe under it. Each recipe entry requires:
 - `name` — display name
 - `recipe` — 3×3 crafting grid pattern, as a list of exactly 3 strings
 - `symbols` — material mappings for pattern characters
