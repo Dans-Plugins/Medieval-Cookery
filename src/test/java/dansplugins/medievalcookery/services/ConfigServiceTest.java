@@ -302,7 +302,7 @@ class ConfigServiceTest {
 
     // --- recipe ids ------------------------------------------------------------------------
 
-    private static final String[] USABLE_IDS = {"salmon_roll", "fish.stew-2", "stews/fish", "2"};
+    private static final String[] USABLE_IDS = {"salmon_roll", "fish-stew_2", "stews/fish", "2"};
     private static final String[] UNUSABLE_IDS = {"Fish_Stew", "fish stew", "fish:stew", "fishstew!", "pâté"};
 
     @Test
@@ -349,6 +349,51 @@ class ConfigServiceTest {
 
         assertNotNull(recipes);
         assertTrue(recipes.isEmpty());
+    }
+
+    /** NamespacedKey would take this id, but a recipe file can never deliver it intact. */
+    @Test
+    void anIdWithADotIsNotUsable() {
+        assertFalse(ConfigService.isRecipeIdUsable("fish.stew"));
+    }
+
+    @Test
+    void aDottedIdIsReportedAsWrittenRatherThanAsAnEntryWithNoName(@TempDir Path dataFolder) throws IOException {
+        ConfigService configService = serviceReading(dataFolder,
+                "recipes:\n"
+                        + "  fish.stew:\n"
+                        + "    name: Fish Stew\n"
+                        + "    recipe: [' S ', ' C ', ' B ']\n"
+                        + "    symbols:\n      S: SALMON\n      C: CARROT\n      B: BOWL\n");
+
+        List<CustomFoodRecipe>[] recipes = new List[1];
+        String printed = printedBy(() -> recipes[0] = configService.loadRecipes());
+
+        assertTrue(recipes[0].isEmpty());
+        assertTrue(printed.contains("Error in recipe 'fish.stew': a '.' in a recipe id"), printed);
+    }
+
+    /** The sibling `fish` is what would hide the dotted one, were only a nameless entry reported. */
+    @Test
+    void aDottedIdIsReportedWhenAnEntryOfItsFirstPartExistsToo() {
+        ConfigurationSection fish = YamlConfiguration.loadConfiguration(new StringReader(
+                "recipes:\n"
+                        + "  fish:\n"
+                        + "    name: Fish\n"
+                        + "    symbols:\n      S: SALMON\n"
+                        + "  fish.stew:\n"
+                        + "    name: Fish Stew\n"))
+                .getConfigurationSection("recipes.fish");
+
+        String printed = printedBy(() -> ConfigService.reportDottedIds(fish, "fish"));
+
+        assertTrue(printed.contains("'fish.stew'"), printed);
+        assertFalse(printed.contains("'fish.symbols'"), printed);
+    }
+
+    @Test
+    void anEntryThatIsNotASectionHasNoDottedIdToReport() {
+        assertEquals("", printedBy(() -> ConfigService.reportDottedIds(null, "fish")));
     }
 
     // --- usage reporting -------------------------------------------------------------------
