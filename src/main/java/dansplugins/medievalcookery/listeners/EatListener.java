@@ -127,8 +127,14 @@ public class EatListener implements Listener {
      * Vanilla only starts eating an ordinary food when the hunger bar is below full, or when the
      * player is in creative mode. A full player's right-click would otherwise cost them the food,
      * since the Saturation effect cannot raise a food level that is already at its maximum.
+     *
+     * A player in spectator mode eats at no food level. Vanilla lets a spectator use no item, but
+     * they keep the inventory and hunger bar they had, so the food level alone would let them.
      */
     static boolean canEat(int foodLevel, GameMode gameMode) {
+        if (gameMode == GameMode.SPECTATOR) {
+            return false;
+        }
         return foodLevel < MAX_FOOD_LEVEL || gameMode == GameMode.CREATIVE;
     }
 

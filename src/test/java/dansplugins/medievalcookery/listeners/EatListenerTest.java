@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -112,6 +113,13 @@ class EatListenerTest {
     @Test
     void aCreativePlayerCanEatWhenFull() {
         assertTrue(EatListener.canEat(20, GameMode.CREATIVE));
+    }
+
+    /** A spectator keeps their inventory and hunger bar but can use no item in vanilla. */
+    @ParameterizedTest
+    @ValueSource(ints = {0, 19, 20})
+    void aSpectatorCannotEatAtAnyFoodLevel(int foodLevel) {
+        assertFalse(EatListener.canEat(foodLevel, GameMode.SPECTATOR));
     }
 
     /**
