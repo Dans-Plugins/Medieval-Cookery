@@ -355,13 +355,28 @@ public class ConfigService {
     // as a parameter so ConfigServiceTest can hand them a YamlConfiguration
     // whose defaults are the bundled file and check exactly that fall-through.
 
+    /**
+     * A blank endpoint counts as off, as an empty key does. Only reading it as the default would
+     * start reporting to that server from one whose owner blanked the value to stop reports.
+     */
     static boolean isUsageReportingEnabled(Configuration config) {
-        return config.getBoolean(USAGE_REPORTING_ENABLED_KEY);
+        return config.getBoolean(USAGE_REPORTING_ENABLED_KEY) && !isEndpointBlank(config);
     }
 
+    /**
+     * Never blank, because {@code TraceClient.builder} throws for a blank URL, which would escape
+     * {@code onEnable} whatever the switch says. The default stands in for a blank value only to
+     * get the client built; {@link #isUsageReportingEnabled(Configuration)} has it send nothing.
+     */
     static String getUsageReportingEndpoint(Configuration config) {
+        return isEndpointBlank(config)
+                ? DEFAULT_USAGE_REPORTING_ENDPOINT
+                : config.getString(USAGE_REPORTING_ENDPOINT_KEY);
+    }
+
+    private static boolean isEndpointBlank(Configuration config) {
         String endpoint = config.getString(USAGE_REPORTING_ENDPOINT_KEY);
-        return endpoint != null ? endpoint : DEFAULT_USAGE_REPORTING_ENDPOINT;
+        return endpoint == null || endpoint.trim().isEmpty();
     }
 
     static String getUsageReportingKey(Configuration config) {

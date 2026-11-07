@@ -1,6 +1,7 @@
 package dansplugins.medievalcookery.services;
 
 import dansplugins.medievalcookery.CustomFoodRecipe;
+import dansplugins.medievalcookery.trace.TraceClient;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.Configuration;
@@ -450,6 +451,40 @@ class ConfigServiceTest {
         assertFalse(ConfigService.isUsageReportingEnabled(config));
         assertEquals("http://localhost:1", ConfigService.getUsageReportingEndpoint(config));
         assertEquals("", ConfigService.getUsageReportingKey(config));
+    }
+
+    /** Builds the client exactly as MedievalCookery.onEnable does, less the server-wide file. */
+    private static TraceClient clientFor(Configuration config) {
+        return TraceClient.builder(ConfigService.getUsageReportingEndpoint(config), "MedievalCookery", "1.0")
+                .key(ConfigService.getUsageReportingKey(config))
+                .enabled(ConfigService.isUsageReportingEnabled(config))
+                .build();
+    }
+
+    @Test
+    void aBlankEndpointTurnsReportingOffRatherThanStoppingTheClientBeingBuilt() {
+        for (String blank : new String[] {"''", "'   '"}) {
+            Configuration config = onDiskConfigLacking(
+                    "usage-reporting:\n  enabled: true\n  endpoint: " + blank + "\n");
+
+            assertFalse(ConfigService.isUsageReportingEnabled(config),
+                    "a blank endpoint must not send reports to the default server instead");
+            assertFalse(clientFor(config).isEnabled());
+        }
+    }
+
+    @Test
+    void anEndpointIsNotNeededWhenReportingIsAlreadyOff() {
+        Configuration config = onDiskConfigLacking("usage-reporting:\n  enabled: false\n  endpoint: ''\n");
+
+        assertFalse(clientFor(config).isEnabled());
+    }
+
+    @Test
+    void aConfiguredEndpointLeavesReportingOn() {
+        Configuration config = onDiskConfigLacking("usage-reporting:\n  endpoint: http://localhost:1\n");
+
+        assertTrue(ConfigService.isUsageReportingEnabled(config));
     }
 
     @Test
