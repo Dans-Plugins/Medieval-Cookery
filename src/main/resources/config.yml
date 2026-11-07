@@ -15,7 +15,7 @@
 # https://danielstephenson.dev/usage-reporting
 usage-reporting:
   enabled: true
-  # Blank means reporting is off regardless of the switch above.
+  # An empty string ("") means reporting is off regardless of the switch above.
   endpoint: https://trace.danielstephenson.dev
   # The key identifies this plugin to the trace server, so reports are
   # attributed to MedievalCookery and can be revoked as a group if they are ever

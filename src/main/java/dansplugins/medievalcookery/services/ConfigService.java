@@ -369,14 +369,13 @@ public class ConfigService {
      * get the client built; {@link #isUsageReportingEnabled(Configuration)} has it send nothing.
      */
     static String getUsageReportingEndpoint(Configuration config) {
-        return isEndpointBlank(config)
-                ? DEFAULT_USAGE_REPORTING_ENDPOINT
-                : config.getString(USAGE_REPORTING_ENDPOINT_KEY);
+        String endpoint = config.getString(USAGE_REPORTING_ENDPOINT_KEY);
+        return endpoint == null || isEndpointBlank(config) ? DEFAULT_USAGE_REPORTING_ENDPOINT : endpoint;
     }
 
     private static boolean isEndpointBlank(Configuration config) {
         String endpoint = config.getString(USAGE_REPORTING_ENDPOINT_KEY);
-        return endpoint == null || endpoint.trim().isEmpty();
+        return endpoint != null && endpoint.trim().isEmpty();
     }
 
     static String getUsageReportingKey(Configuration config) {

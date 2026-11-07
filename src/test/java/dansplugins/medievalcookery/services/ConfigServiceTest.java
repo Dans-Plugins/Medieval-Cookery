@@ -481,6 +481,25 @@ class ConfigServiceTest {
     }
 
     @Test
+    void anAbsentEndpointIsNotABlankOne() {
+        Configuration config = YamlConfiguration.loadConfiguration(
+                new StringReader("usage-reporting:\n  enabled: true\n"));
+
+        assertTrue(ConfigService.isUsageReportingEnabled(config));
+        assertEquals("https://trace.danielstephenson.dev", ConfigService.getUsageReportingEndpoint(config));
+    }
+
+    @Test
+    void anEndpointKeyWithNoValueFallsThroughToTheBundledDefault() {
+        // YAML null removes the key, so unlike '' this cannot be told apart from an old config.yml.
+        Configuration config = onDiskConfigLacking("usage-reporting:\n  endpoint:\n");
+
+        assertTrue(ConfigService.isUsageReportingEnabled(config));
+        assertEquals(bundledConfig().getString("usage-reporting.endpoint"),
+                ConfigService.getUsageReportingEndpoint(config));
+    }
+
+    @Test
     void aConfiguredEndpointLeavesReportingOn() {
         Configuration config = onDiskConfigLacking("usage-reporting:\n  endpoint: http://localhost:1\n");
 
