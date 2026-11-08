@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -31,6 +32,7 @@ public class ConfigService {
         RENAMED_MATERIALS.put("GRASS", "SHORT_GRASS");
         RENAMED_MATERIALS.put("SHORT_GRASS", "GRASS");
     }
+    private static final String MINECRAFT_PREFIX = "minecraft:";
 
     // The characters Bukkit's NamespacedKey accepts in a key, less the '.' a configuration path
     // cannot hold; see isRecipeIdUsable.
@@ -273,13 +275,30 @@ public class ConfigService {
      * predates the rename keeps the old name and would otherwise lose the recipe on a current
      * server, while a server that predates it does not know the new name at all. Each name is
      * tried, and whichever the running server recognises is used.
+     *
+     * The name is matched as {@code Material.matchMaterial} matches it: in any case, with or
+     * without a lowercase {@code minecraft:} prefix, and with spaces for underscores. So {@code wheat} and
+     * {@code minecraft:wheat}, the form the game itself shows, find {@code WHEAT}, where an exact
+     * lookup would skip the recipe. The rename table is consulted with the name in the same form.
      */
     static Material resolveMaterial(String name) {
-        Material material = Material.getMaterial(name);
-        if (material == null && RENAMED_MATERIALS.containsKey(name)) {
-            material = Material.getMaterial(RENAMED_MATERIALS.get(name));
+        Material material = Material.matchMaterial(name);
+        if (material == null) {
+            String renamed = RENAMED_MATERIALS.get(normaliseMaterialName(name));
+            if (renamed != null) {
+                material = Material.getMaterial(renamed);
+            }
         }
         return material;
+    }
+
+    // The form Material.matchMaterial reduces a name to before its lookup.
+    private static String normaliseMaterialName(String name) {
+        String filtered = name;
+        if (filtered.startsWith(MINECRAFT_PREFIX)) {
+            filtered = filtered.substring(MINECRAFT_PREFIX.length());
+        }
+        return filtered.toUpperCase(Locale.ENGLISH).replaceAll("\\s+", "_").replaceAll("\\W", "");
     }
 
     /**
