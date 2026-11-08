@@ -209,6 +209,43 @@ class ConfigServiceTest {
     }
 
     @Test
+    void aMaterialIsResolvedWhateverTheCaseOfItsName() {
+        assertEquals(Material.WHEAT, ConfigService.resolveMaterial("wheat"));
+        assertEquals(Material.BOWL, ConfigService.resolveMaterial("Bowl"));
+    }
+
+    @Test
+    void aMaterialIsResolvedByItsNamespacedId() {
+        assertEquals(Material.WHEAT, ConfigService.resolveMaterial("minecraft:wheat"));
+    }
+
+    @Test
+    void aMaterialIsResolvedWithSpacesForUnderscores() {
+        assertEquals(Material.COOKED_BEEF, ConfigService.resolveMaterial("cooked beef"));
+    }
+
+    @Test
+    void theOldNameOfARenamedMaterialIsResolvedInAnyForm() {
+        assertEquals(Material.SHORT_GRASS, ConfigService.resolveMaterial("grass"));
+        assertEquals(Material.SHORT_GRASS, ConfigService.resolveMaterial("minecraft:grass"));
+    }
+
+    /** The form a recipe gets when its author copies the id the game shows. */
+    @Test
+    void readSymbolsAcceptsALowerCaseNamespacedMaterial() {
+        Map<String, Material> ingredients = ConfigService.readSymbols(
+                symbolsFrom("symbols:\n  W: minecraft:wheat\n"), "bread_loaf");
+
+        assertNotNull(ingredients);
+        assertEquals(Material.WHEAT, ingredients.get("W"));
+    }
+
+    @Test
+    void readAfterEatItemAcceptsALowerCaseMaterial() {
+        assertEquals(Material.BOWL, ConfigService.readAfterEatItem("bowl", "Fish Stew"));
+    }
+
+    @Test
     void aNameOnNeitherSideOfARenameStaysUnknown() {
         assertNull(ConfigService.resolveMaterial("NOT_A_REAL_MATERIAL"));
     }
