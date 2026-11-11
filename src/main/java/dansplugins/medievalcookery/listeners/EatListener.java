@@ -50,7 +50,9 @@ public class EatListener implements Listener {
             Material.BEEHIVE,
             Material.BEE_NEST,
             Material.CAMPFIRE,
-            Material.SOUL_CAMPFIRE);
+            Material.SOUL_CAMPFIRE,
+            Material.IRON_DOOR,
+            Material.IRON_TRAPDOOR);
 
     private final MedievalCookery medievalCookery;
 
@@ -160,11 +162,21 @@ public class EatListener implements Listener {
      * {@link Material#isInteractable()} only says a block has some use. For these the click goes
      * on to the held item, which would eat a vanilla food. Were the meal not started here, the
      * head would be offered for placement, {@link PlaceListener} would refuse it, and the click
-     * would do nothing. Fences are matched by name because {@code Tag.FENCES} needs a server.
+     * would do nothing. Iron doors and trapdoors open only by redstone. Fences and candles are
+     * matched by name because {@code Tag.FENCES} and {@code Tag.CANDLES} need a server.
      * A player leading a mob is the exception for a fence; see {@link #isLeadingMob}.
      */
     static boolean passesFoodClickToItem(Material blockType) {
-        return BLOCKS_THAT_PASS_ON_A_FOOD.contains(blockType) || isFence(blockType);
+        return BLOCKS_THAT_PASS_ON_A_FOOD.contains(blockType) || isFence(blockType) || isCandle(blockType);
+    }
+
+    /**
+     * Reports whether a block is a candle, which reacts only to an empty hand, flint and steel,
+     * a fire charge or another candle. A candle cake is not one: it is eaten as a cake.
+     */
+    static boolean isCandle(Material blockType) {
+        return blockType != null
+                && (blockType == Material.CANDLE || blockType.name().endsWith("_CANDLE"));
     }
 
     /** Reports whether a block is a fence, which a gate is not. */
