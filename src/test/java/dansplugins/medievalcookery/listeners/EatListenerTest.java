@@ -59,10 +59,31 @@ class EatListenerTest {
     @EnumSource(names = {
             "OAK_FENCE", "BAMBOO_FENCE", "NETHER_BRICK_FENCE", "PUMPKIN", "TNT", "CAULDRON",
             "WATER_CAULDRON", "LAVA_CAULDRON", "POWDER_SNOW_CAULDRON", "BEEHIVE", "BEE_NEST",
-            "CAMPFIRE", "SOUL_CAMPFIRE"})
+            "CAMPFIRE", "SOUL_CAMPFIRE", "IRON_DOOR", "IRON_TRAPDOOR", "CANDLE", "WHITE_CANDLE",
+            "LIGHT_BLUE_CANDLE", "BLACK_CANDLE"})
     void aBlockWithNoUseForAFoodDoesNotClaimTheRightClick(Material material) {
         assertTrue(material.isInteractable());
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    /** A candle cake is eaten as a cake, and a wooden trapdoor opens by hand, unlike an iron one. */
+    @ParameterizedTest
+    @EnumSource(names = {"CANDLE_CAKE", "WHITE_CANDLE_CAKE", "OAK_TRAPDOOR"})
+    void aBlockBesideThePassingOnesKeepsItsOwnRightClick(Material material) {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"CANDLE", "WHITE_CANDLE", "BLACK_CANDLE"})
+    void aCandleIsRecognised(Material material) {
+        assertTrue(EatListener.isCandle(material));
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @EnumSource(names = {"CANDLE_CAKE", "RED_CANDLE_CAKE", "TORCH", "STONE"})
+    void nothingElseIsACandle(Material material) {
+        assertFalse(EatListener.isCandle(material));
     }
 
     /** The name match for fences must not reach a gate, which does open. */
