@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,13 +43,13 @@ class EatListenerTest {
     @ParameterizedTest
     @EnumSource(names = {"CHEST", "OAK_DOOR", "CRAFTING_TABLE", "FURNACE", "LEVER"})
     void anInteractableBlockKeepsItsOwnRightClick(Material material) {
-        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
 
     @ParameterizedTest
     @EnumSource(names = {"STONE", "DIRT", "OAK_PLANKS"})
     void anOrdinaryBlockDoesNotClaimTheRightClick(Material material) {
-        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
 
     /**
@@ -63,14 +64,14 @@ class EatListenerTest {
             "LIGHT_BLUE_CANDLE", "BLACK_CANDLE"})
     void aBlockWithNoUseForAFoodDoesNotClaimTheRightClick(Material material) {
         assertTrue(material.isInteractable());
-        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
 
     /** A candle cake is eaten as a cake, and a wooden trapdoor opens by hand, unlike an iron one. */
     @ParameterizedTest
     @EnumSource(names = {"CANDLE_CAKE", "WHITE_CANDLE_CAKE", "OAK_TRAPDOOR"})
     void aBlockBesideThePassingOnesKeepsItsOwnRightClick(Material material) {
-        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
 
     @ParameterizedTest
@@ -90,7 +91,7 @@ class EatListenerTest {
     @ParameterizedTest
     @EnumSource(names = {"OAK_FENCE_GATE", "BAMBOO_FENCE_GATE"})
     void aFenceGateKeepsItsOwnRightClick(Material material) {
-        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false));
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
 
     @ParameterizedTest
@@ -107,14 +108,53 @@ class EatListenerTest {
         assertFalse(EatListener.isFence(material));
     }
 
+    /**
+     * Vanilla opens these only for a creative operator and passes anyone else's click on to the
+     * held item, which would eat a vanilla food.
+     */
+    @ParameterizedTest
+    @EnumSource(names = {
+            "COMMAND_BLOCK", "CHAIN_COMMAND_BLOCK", "REPEATING_COMMAND_BLOCK", "STRUCTURE_BLOCK", "JIGSAW"})
+    void aGameMasterBlockPassesTheClickOfAPlayerWhoCannotUseIt(Material material) {
+        assertTrue(material.isInteractable());
+        assertTrue(EatListener.isGameMasterBlock(material));
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {
+            "COMMAND_BLOCK", "CHAIN_COMMAND_BLOCK", "REPEATING_COMMAND_BLOCK", "STRUCTURE_BLOCK", "JIGSAW"})
+    void aGameMasterBlockKeepsTheClickOfAPlayerWhoCanUseIt(Material material) {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, true));
+    }
+
+    /** Being able to open a command block changes nothing about any other block. */
+    @ParameterizedTest
+    @EnumSource(names = {"CHEST", "OAK_DOOR", "STONE", "OAK_FENCE", "CANDLE"})
+    void gameMasterAccessLeavesOtherBlocksAlone(Material material) {
+        assertFalse(EatListener.isGameMasterBlock(material));
+        assertEquals(
+                EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false),
+                EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, true));
+    }
+
+    @Test
+    void onlyACreativeOperatorCanUseGameMasterBlocks() {
+        assertTrue(EatListener.canUseGameMasterBlocks(GameMode.CREATIVE, true));
+        assertFalse(EatListener.canUseGameMasterBlocks(GameMode.CREATIVE, false));
+        assertFalse(EatListener.canUseGameMasterBlocks(GameMode.SURVIVAL, true));
+        assertFalse(EatListener.canUseGameMasterBlocks(GameMode.ADVENTURE, true));
+        assertFalse(EatListener.canUseGameMasterBlocks(GameMode.SPECTATOR, true));
+    }
+
     @Test
     void sneakingSuppressesTheBlockAndAllowsTheMeal() {
-        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHEST, true));
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHEST, true, false));
     }
 
     @Test
     void clickingAirIsNeverABlockInteraction() {
-        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_AIR, null, false));
+        assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_AIR, null, false, false));
     }
 
     @ParameterizedTest

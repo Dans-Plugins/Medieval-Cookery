@@ -54,6 +54,14 @@ public class EatListener implements Listener {
             Material.IRON_DOOR,
             Material.IRON_TRAPDOOR);
 
+    /** Blocks that open a screen only for a player who can use game-master blocks. */
+    private static final Set<Material> GAME_MASTER_BLOCKS = EnumSet.of(
+            Material.COMMAND_BLOCK,
+            Material.CHAIN_COMMAND_BLOCK,
+            Material.REPEATING_COMMAND_BLOCK,
+            Material.STRUCTURE_BLOCK,
+            Material.JIGSAW);
+
     private final MedievalCookery medievalCookery;
 
     public EatListener(MedievalCookery medievalCookery) {
@@ -72,7 +80,9 @@ public class EatListener implements Listener {
         if (isItemUseDenied(event)) {
             return;
         }
-        if (isBlockInteractionInstead(event.getAction(), clickedType(event), event.getPlayer().isSneaking())) {
+        Player player = event.getPlayer();
+        if (isBlockInteractionInstead(event.getAction(), clickedType(event), player.isSneaking(),
+                canUseGameMasterBlocks(player.getGameMode(), player.isOp()))) {
             return;
         }
 
@@ -80,7 +90,7 @@ public class EatListener implements Listener {
         if (recipe == null) {
             return;
         }
-        if (isFence(clickedType(event)) && !event.getPlayer().isSneaking() && isLeadingMob(event.getPlayer())) {
+        if (isFence(clickedType(event)) && !player.isSneaking() && isLeadingMob(player)) {
             return;
         }
 
@@ -88,7 +98,6 @@ public class EatListener implements Listener {
         // the head as a block either.
         event.setCancelled(true);
 
-        Player player = event.getPlayer();
         if (medievalCookery.isPlayerEating(player)) {
             return;
         }
@@ -147,13 +156,35 @@ public class EatListener implements Listener {
      * chest while carrying food opens the chest rather than eating. Cancelling the event here
      * regardless would make every container, door and workstation unusable to a player carrying
      * a food. Sneaking suppresses the block's interaction in vanilla, and so does not stop a meal.
+     * {@code canUseGameMasterBlocks} is whether the player may open a command block; see
+     * {@link #canUseGameMasterBlocks}.
      */
-    static boolean isBlockInteractionInstead(Action action, Material clickedBlockType, boolean sneaking) {
+    static boolean isBlockInteractionInstead(Action action, Material clickedBlockType, boolean sneaking,
+                                             boolean canUseGameMasterBlocks) {
         return action == Action.RIGHT_CLICK_BLOCK
                 && !sneaking
                 && clickedBlockType != null
                 && clickedBlockType.isInteractable()
-                && !passesFoodClickToItem(clickedBlockType);
+                && !passesFoodClickToItem(clickedBlockType)
+                && !(isGameMasterBlock(clickedBlockType) && !canUseGameMasterBlocks);
+    }
+
+    /**
+     * Reports whether a block is a command, structure or jigsaw block. Vanilla opens one of these
+     * only for a player who can use game-master blocks, and passes anyone else's click on to the
+     * held item, which would eat a vanilla food.
+     */
+    static boolean isGameMasterBlock(Material blockType) {
+        return GAME_MASTER_BLOCKS.contains(blockType);
+    }
+
+    /**
+     * Reports whether a player may open a command, structure or jigsaw block. Vanilla requires
+     * creative mode and operator permission level 2. Bukkit exposes only whether a player is an
+     * operator, so an operator whose {@code ops.json} level is below 2 counts as able to.
+     */
+    static boolean canUseGameMasterBlocks(GameMode gameMode, boolean op) {
+        return gameMode == GameMode.CREATIVE && op;
     }
 
     /**
