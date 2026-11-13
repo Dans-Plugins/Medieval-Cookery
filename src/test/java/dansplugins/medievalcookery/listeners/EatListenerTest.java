@@ -2,6 +2,11 @@ package dansplugins.medievalcookery.listeners;
 
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.CaveVines;
+import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -11,6 +16,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.lang.reflect.Proxy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -147,6 +154,58 @@ class EatListenerTest {
         assertFalse(EatListener.canUseGameMasterBlocks(GameMode.SPECTATOR, true));
     }
 
+    /**
+     * These report as interactable in every state, but in the states below they have no use for a
+     * food, so vanilla passes the click on to the held item.
+     */
+    @ParameterizedTest
+    @EnumSource(names = {"RESPAWN_ANCHOR", "SWEET_BERRY_BUSH", "CAVE_VINES", "CAVE_VINES_PLANT"})
+    void aStateDependentBlockClaimsTheClickByMaterialAlone(Material material) {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
+    }
+
+    @Test
+    void anUnchargedRespawnAnchorPassesTheClick() {
+        assertTrue(EatListener.passesFoodClickInItsState(respawnAnchor(0)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 4})
+    void aChargedRespawnAnchorKeepsTheClick(int charges) {
+        assertFalse(EatListener.passesFoodClickInItsState(respawnAnchor(charges)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void anUnripeBerryBushPassesTheClick(int age) {
+        assertTrue(EatListener.passesFoodClickInItsState(aged(Material.SWEET_BERRY_BUSH, age)));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {2, 3})
+    void aRipeBerryBushKeepsTheClick(int age) {
+        assertFalse(EatListener.passesFoodClickInItsState(aged(Material.SWEET_BERRY_BUSH, age)));
+    }
+
+    /** {@code CAVE_VINES} is both ageable and berried; the berries alone decide. */
+    @ParameterizedTest
+    @ValueSource(classes = {CaveVines.class, CaveVinesPlant.class})
+    void caveVinesPassTheClickOnlyWithoutBerries(Class<? extends CaveVinesPlant> type) {
+        assertTrue(EatListener.passesFoodClickInItsState(caveVines(type, false)));
+        assertFalse(EatListener.passesFoodClickInItsState(caveVines(type, true)));
+    }
+
+    /** Only the berry bush is judged by its age; a young crop is no reason to start a meal. */
+    @Test
+    void anotherAgeableBlockIsNotJudgedByItsAge() {
+        assertFalse(EatListener.passesFoodClickInItsState(aged(Material.WHEAT, 0)));
+    }
+
+    @Test
+    void noBlockPassesNothingOn() {
+        assertFalse(EatListener.passesFoodClickInItsState(null));
+    }
+
     @Test
     void sneakingSuppressesTheBlockAndAllowsTheMeal() {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHEST, true, false));
@@ -208,6 +267,34 @@ class EatListenerTest {
         event.setUseInteractedBlock(Event.Result.ALLOW);
         event.setUseItemInHand(Event.Result.DENY);
         assertTrue(EatListener.isItemUseDenied(event));
+    }
+
+    private static RespawnAnchor respawnAnchor(int charges) {
+        return blockData(RespawnAnchor.class, Material.RESPAWN_ANCHOR, "getCharges", charges);
+    }
+
+    private static Ageable aged(Material material, int age) {
+        return blockData(Ageable.class, material, "getAge", age);
+    }
+
+    private static CaveVinesPlant caveVines(Class<? extends CaveVinesPlant> type, boolean berries) {
+        return blockData(type, Material.CAVE_VINES, "isBerries", berries);
+    }
+
+    /**
+     * Block data needs a server to create, so a proxy stands in for it, answering its material and
+     * the one property the check reads.
+     */
+    private static <T extends BlockData> T blockData(Class<T> type, Material material, String property, Object value) {
+        return type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, (proxy, method, args) -> {
+            if (method.getName().equals(property)) {
+                return value;
+            }
+            if (method.getName().equals("getMaterial")) {
+                return material;
+            }
+            throw new UnsupportedOperationException(method.getName());
+        }));
     }
 
     /** Events construct without a server; the player and block are not read by the check. */
