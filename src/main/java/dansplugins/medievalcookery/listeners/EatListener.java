@@ -5,6 +5,10 @@ import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.data.Ageable;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -82,7 +86,8 @@ public class EatListener implements Listener {
         }
         Player player = event.getPlayer();
         if (isBlockInteractionInstead(event.getAction(), clickedType(event), player.isSneaking(),
-                canUseGameMasterBlocks(player.getGameMode(), player.isOp()))) {
+                canUseGameMasterBlocks(player.getGameMode(), player.isOp()))
+                && !passesFoodClickInItsState(clickedData(event))) {
             return;
         }
 
@@ -210,6 +215,28 @@ public class EatListener implements Listener {
                 && (blockType == Material.CANDLE || blockType.name().endsWith("_CANDLE"));
     }
 
+    /**
+     * Reports whether a block whose use depends on its state has none for a food in the state it
+     * is in, so that the click goes on to the held item, which would eat a vanilla food.
+     *
+     * An uncharged respawn anchor takes only glowstone. A sweet berry bush below age 2 has no
+     * berries to pick, and cave vines without glow berries have none either. Once charged or
+     * ripe, each keeps the click: the anchor sets a spawn point or explodes, and the berries
+     * are picked. {@code data} is null for a click in the air.
+     */
+    static boolean passesFoodClickInItsState(BlockData data) {
+        if (data instanceof RespawnAnchor) {
+            return ((RespawnAnchor) data).getCharges() == 0;
+        }
+        if (data instanceof CaveVinesPlant) {
+            return !((CaveVinesPlant) data).isBerries();
+        }
+        if (data instanceof Ageable && data.getMaterial() == Material.SWEET_BERRY_BUSH) {
+            return ((Ageable) data).getAge() < 2;
+        }
+        return false;
+    }
+
     /** Reports whether a block is a fence, which a gate is not. */
     static boolean isFence(Material blockType) {
         return blockType != null && blockType.name().endsWith("_FENCE");
@@ -233,5 +260,9 @@ public class EatListener implements Listener {
 
     private static Material clickedType(PlayerInteractEvent event) {
         return event.getClickedBlock() == null ? null : event.getClickedBlock().getType();
+    }
+
+    private static BlockData clickedData(PlayerInteractEvent event) {
+        return event.getClickedBlock() == null ? null : event.getClickedBlock().getBlockData();
     }
 }
