@@ -2,10 +2,12 @@ package dansplugins.medievalcookery.listeners;
 
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVines;
 import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.RedstoneWire;
 import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
@@ -159,7 +161,7 @@ class EatListenerTest {
      * food, so vanilla passes the click on to the held item.
      */
     @ParameterizedTest
-    @EnumSource(names = {"RESPAWN_ANCHOR", "SWEET_BERRY_BUSH", "CAVE_VINES", "CAVE_VINES_PLANT"})
+    @EnumSource(names = {"RESPAWN_ANCHOR", "SWEET_BERRY_BUSH", "CAVE_VINES", "CAVE_VINES_PLANT", "REDSTONE_WIRE"})
     void aStateDependentBlockClaimsTheClickByMaterialAlone(Material material) {
         assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, material, false, false));
     }
@@ -199,6 +201,26 @@ class EatListenerTest {
     @Test
     void anotherAgeableBlockIsNotJudgedByItsAge() {
         assertFalse(EatListener.passesFoodClickInItsState(aged(Material.WHEAT, 0)));
+    }
+
+    /** A line, a corner or a T of dust has nothing to toggle, so vanilla eats a food on it. */
+    @ParameterizedTest
+    @ValueSource(strings = {"NS", "EW", "N", "NE", "NES", "WNE"})
+    void redstoneDustInALineOrCornerPassesTheClick(String connectedSides) {
+        assertTrue(EatListener.passesFoodClickInItsState(redstoneWire(connectedSides, RedstoneWire.Connection.SIDE)));
+    }
+
+    /** A connection climbing the side of a block counts as connected, as one along the ground does. */
+    @Test
+    void redstoneDustClimbingABlockPassesTheClick() {
+        assertTrue(EatListener.passesFoodClickInItsState(redstoneWire("NS", RedstoneWire.Connection.UP)));
+    }
+
+    /** A dot is toggled into a cross and a cross back into a dot. */
+    @ParameterizedTest
+    @ValueSource(strings = {"", "NESW"})
+    void aDotOrACrossOfRedstoneDustKeepsTheClick(String connectedSides) {
+        assertFalse(EatListener.passesFoodClickInItsState(redstoneWire(connectedSides, RedstoneWire.Connection.SIDE)));
     }
 
     @Test
@@ -279,6 +301,25 @@ class EatListenerTest {
 
     private static CaveVinesPlant caveVines(Class<? extends CaveVinesPlant> type, boolean berries) {
         return blockData(type, Material.CAVE_VINES, "isBerries", berries);
+    }
+
+    /**
+     * Redstone dust connected, with {@code connection}, on the sides whose initials are given
+     * (N, E, S, W), and on no other.
+     */
+    private static RedstoneWire redstoneWire(String connectedSides, RedstoneWire.Connection connection) {
+        return (RedstoneWire) Proxy.newProxyInstance(RedstoneWire.class.getClassLoader(),
+                new Class<?>[]{RedstoneWire.class}, (proxy, method, args) -> {
+                    if (method.getName().equals("getFace")) {
+                        BlockFace face = (BlockFace) args[0];
+                        return connectedSides.indexOf(face.name().charAt(0)) >= 0
+                                ? connection : RedstoneWire.Connection.NONE;
+                    }
+                    if (method.getName().equals("getMaterial")) {
+                        return Material.REDSTONE_WIRE;
+                    }
+                    throw new UnsupportedOperationException(method.getName());
+                });
     }
 
     /**
