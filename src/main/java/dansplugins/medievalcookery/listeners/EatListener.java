@@ -5,9 +5,11 @@ import dansplugins.medievalcookery.DelayedExecution;
 import dansplugins.medievalcookery.MedievalCookery;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.CaveVinesPlant;
+import org.bukkit.block.data.type.RedstoneWire;
 import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -65,6 +67,10 @@ public class EatListener implements Listener {
             Material.REPEATING_COMMAND_BLOCK,
             Material.STRUCTURE_BLOCK,
             Material.JIGSAW);
+
+    /** The sides redstone dust can connect to. */
+    private static final BlockFace[] HORIZONTAL_FACES = {
+            BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
 
     private final MedievalCookery medievalCookery;
 
@@ -222,9 +228,13 @@ public class EatListener implements Listener {
      * An uncharged respawn anchor takes only glowstone. A sweet berry bush below age 2 has no
      * berries to pick, and cave vines without glow berries have none either. Once charged or
      * ripe, each keeps the click: the anchor sets a spawn point or explodes, and the berries
-     * are picked. {@code data} is null for a click in the air.
+     * are picked. Redstone dust uses a click only to toggle a dot into a cross and back; see
+     * {@link #isDotOrCross}. {@code data} is null for a click in the air.
      */
     static boolean passesFoodClickInItsState(BlockData data) {
+        if (data instanceof RedstoneWire) {
+            return !isDotOrCross((RedstoneWire) data);
+        }
         if (data instanceof RespawnAnchor) {
             return ((RespawnAnchor) data).getCharges() == 0;
         }
@@ -235,6 +245,26 @@ public class EatListener implements Listener {
             return ((Ageable) data).getAge() < 2;
         }
         return false;
+    }
+
+    /**
+     * Reports whether redstone dust is connected on none of its four sides (a dot) or on all of
+     * them (a cross). Vanilla toggles only those shapes on a right-click, and passes the click on
+     * to the held item for a wire running in a line or a corner.
+     *
+     * A cross whose four connections come from real neighbours cannot be toggled, so vanilla
+     * passes that click too, but telling it apart from a cross toggled in open ground needs the
+     * neighbouring blocks. Every cross keeps the click here, which leaves the food uneaten rather
+     * than letting a meal stop the player from reshaping the dust.
+     */
+    static boolean isDotOrCross(RedstoneWire wire) {
+        int connected = 0;
+        for (BlockFace face : HORIZONTAL_FACES) {
+            if (wire.getFace(face) != RedstoneWire.Connection.NONE) {
+                connected++;
+            }
+        }
+        return connected == 0 || connected == HORIZONTAL_FACES.length;
     }
 
     /** Reports whether a block is a fence, which a gate is not. */
