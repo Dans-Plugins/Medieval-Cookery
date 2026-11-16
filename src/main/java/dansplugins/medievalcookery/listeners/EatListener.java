@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Bell;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.block.data.type.RedstoneWire;
 import org.bukkit.block.data.type.RespawnAnchor;
@@ -22,6 +23,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 
 import java.util.EnumSet;
 import java.util.Set;
@@ -72,6 +74,9 @@ public class EatListener implements Listener {
     private static final BlockFace[] HORIZONTAL_FACES = {
             BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST};
 
+    /** A hit above this height within a bell's block lands on its mounting, and does not ring it. */
+    static final double BELL_TOP_STRIP_HEIGHT = 0.8124;
+
     private final MedievalCookery medievalCookery;
 
     public EatListener(MedievalCookery medievalCookery) {
@@ -93,7 +98,8 @@ public class EatListener implements Listener {
         Player player = event.getPlayer();
         if (isBlockInteractionInstead(event.getAction(), clickedType(event), player.isSneaking(),
                 canUseGameMasterBlocks(player.getGameMode(), player.isOp()))
-                && !passesFoodClickInItsState(clickedData(event))) {
+                && !passesFoodClickInItsState(clickedData(event))
+                && !passesFoodClickWhereHit(clickedData(event), event.getBlockFace(), event.getClickedPosition())) {
             return;
         }
 
@@ -265,6 +271,51 @@ public class EatListener implements Listener {
             }
         }
         return connected == 0 || connected == HORIZONTAL_FACES.length;
+    }
+
+    /**
+     * Reports whether a block whose use depends on where it was hit has none for this hit, so that
+     * the click goes on to the held item, which would eat a vanilla food. Only a bell is such a
+     * block; see {@link #isBellRung}. {@code clickedPosition} is the hit point within the block,
+     * each coordinate from 0 to 1, and may be null.
+     */
+    static boolean passesFoodClickWhereHit(BlockData data, BlockFace hitFace, Vector clickedPosition) {
+        return data instanceof Bell && !isBellRung((Bell) data, hitFace, clickedPosition);
+    }
+
+    /**
+     * Reports whether a right-click at this face and point rings a bell. Vanilla rings one only on
+     * a side face, below the top strip of the block where the bell's mounting is. A floor bell
+     * rings only from the front or back, a wall bell only from the sides of its swing, and a
+     * ceiling bell from any side. On any other hit it passes the click on to the held item.
+     *
+     * An unknown face or point counts as a ringing one, which leaves the food uneaten rather than
+     * letting a meal stop the bell from ringing.
+     */
+    static boolean isBellRung(Bell bell, BlockFace hitFace, Vector clickedPosition) {
+        if (hitFace == BlockFace.UP || hitFace == BlockFace.DOWN) {
+            return false;
+        }
+        if (clickedPosition != null && clickedPosition.getY() > BELL_TOP_STRIP_HEIGHT) {
+            return false;
+        }
+        if (hitFace == null) {
+            return true;
+        }
+        boolean hitOnFacingAxis = isOnXAxis(hitFace) == isOnXAxis(bell.getFacing());
+        switch (bell.getAttachment()) {
+            case FLOOR:
+                return hitOnFacingAxis;
+            case SINGLE_WALL:
+            case DOUBLE_WALL:
+                return !hitOnFacingAxis;
+            default:
+                return true;
+        }
+    }
+
+    private static boolean isOnXAxis(BlockFace face) {
+        return face.getModX() != 0;
     }
 
     /** Reports whether a block is a fence, which a gate is not. */
