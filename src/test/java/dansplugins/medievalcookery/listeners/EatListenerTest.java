@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Bell;
 import org.bukkit.block.data.type.CaveVines;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.block.data.type.RedstoneWire;
@@ -13,6 +14,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -31,6 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * gesture check is the part that decides whether an ordinary click costs a player their food.
  */
 class EatListenerTest {
+
+    /** A hit halfway up a block's side, below a bell's mounting. */
+    private static final Vector MID_HEIGHT = new Vector(0.5, 0.5, 0.0);
 
     @ParameterizedTest
     @EnumSource(names = {"RIGHT_CLICK_AIR", "RIGHT_CLICK_BLOCK"})
@@ -229,6 +234,69 @@ class EatListenerTest {
     }
 
     @Test
+    void aBellClaimsTheClickByMaterialAlone() {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.BELL, false, false));
+    }
+
+    /** A floor bell facing north swings north-south, so it rings from the north or south face. */
+    @ParameterizedTest
+    @EnumSource(value = BlockFace.class, names = {"NORTH", "SOUTH"})
+    void aFloorBellKeepsAClickOnItsFrontOrBack(BlockFace hitFace) {
+        assertFalse(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.FLOOR, BlockFace.NORTH), hitFace, MID_HEIGHT));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = BlockFace.class, names = {"EAST", "WEST"})
+    void aFloorBellPassesAClickOnItsFrame(BlockFace hitFace) {
+        assertTrue(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.FLOOR, BlockFace.NORTH), hitFace, MID_HEIGHT));
+    }
+
+    /** A wall bell facing north hangs from a north-south bar, so it rings from the east or west. */
+    @ParameterizedTest
+    @EnumSource(value = Bell.Attachment.class, names = {"SINGLE_WALL", "DOUBLE_WALL"})
+    void aWallBellRingsOnlyFromTheSidesOfItsSwing(Bell.Attachment attachment) {
+        Bell bell = bell(attachment, BlockFace.NORTH);
+        assertFalse(EatListener.passesFoodClickWhereHit(bell, BlockFace.EAST, MID_HEIGHT));
+        assertFalse(EatListener.passesFoodClickWhereHit(bell, BlockFace.WEST, MID_HEIGHT));
+        assertTrue(EatListener.passesFoodClickWhereHit(bell, BlockFace.NORTH, MID_HEIGHT));
+        assertTrue(EatListener.passesFoodClickWhereHit(bell, BlockFace.SOUTH, MID_HEIGHT));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = BlockFace.class, names = {"NORTH", "EAST", "SOUTH", "WEST"})
+    void aCeilingBellKeepsAClickOnAnySide(BlockFace hitFace) {
+        assertFalse(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.CEILING, BlockFace.NORTH), hitFace, MID_HEIGHT));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = BlockFace.class, names = {"UP", "DOWN"})
+    void aBellPassesAClickOnItsTopOrBottom(BlockFace hitFace) {
+        assertTrue(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.CEILING, BlockFace.NORTH), hitFace, MID_HEIGHT));
+    }
+
+    /** The top strip of the block is the bell's mounting, which does not ring it. */
+    @Test
+    void aBellPassesAClickOnItsTopStrip() {
+        Bell bell = bell(Bell.Attachment.CEILING, BlockFace.NORTH);
+        assertTrue(EatListener.passesFoodClickWhereHit(bell, BlockFace.NORTH, new Vector(0.5, 0.9, 0.0)));
+        assertFalse(EatListener.passesFoodClickWhereHit(bell, BlockFace.NORTH,
+                new Vector(0.5, EatListener.BELL_TOP_STRIP_HEIGHT, 0.0)));
+    }
+
+    /** Without the hit point a ringing face is assumed to ring, and the food stays uneaten. */
+    @Test
+    void aBellKeepsAClickWhoseHitPointIsUnknown() {
+        assertFalse(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.CEILING, BlockFace.NORTH), BlockFace.NORTH, null));
+        assertFalse(EatListener.passesFoodClickWhereHit(bell(Bell.Attachment.FLOOR, BlockFace.NORTH), null, MID_HEIGHT));
+    }
+
+    @Test
+    void onlyABellIsJudgedByWhereItWasHit() {
+        assertFalse(EatListener.passesFoodClickWhereHit(respawnAnchor(1), BlockFace.UP, MID_HEIGHT));
+        assertFalse(EatListener.passesFoodClickWhereHit(null, null, null));
+    }
+
+    @Test
     void sneakingSuppressesTheBlockAndAllowsTheMeal() {
         assertFalse(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHEST, true, false));
     }
@@ -297,6 +365,22 @@ class EatListenerTest {
 
     private static Ageable aged(Material material, int age) {
         return blockData(Ageable.class, material, "getAge", age);
+    }
+
+    private static Bell bell(Bell.Attachment attachment, BlockFace facing) {
+        return (Bell) Proxy.newProxyInstance(Bell.class.getClassLoader(),
+                new Class<?>[]{Bell.class}, (proxy, method, args) -> {
+                    switch (method.getName()) {
+                        case "getAttachment":
+                            return attachment;
+                        case "getFacing":
+                            return facing;
+                        case "getMaterial":
+                            return Material.BELL;
+                        default:
+                            throw new UnsupportedOperationException(method.getName());
+                    }
+                });
     }
 
     private static CaveVinesPlant caveVines(Class<? extends CaveVinesPlant> type, boolean berries) {
