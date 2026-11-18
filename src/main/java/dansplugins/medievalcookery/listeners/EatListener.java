@@ -8,6 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Bell;
 import org.bukkit.block.data.type.CaveVinesPlant;
 import org.bukkit.block.data.type.RedstoneWire;
@@ -275,12 +276,40 @@ public class EatListener implements Listener {
 
     /**
      * Reports whether a block whose use depends on where it was hit has none for this hit, so that
-     * the click goes on to the held item, which would eat a vanilla food. Only a bell is such a
-     * block; see {@link #isBellRung}. {@code clickedPosition} is the hit point within the block,
-     * each coordinate from 0 to 1, and may be null.
+     * the click goes on to the held item, which would eat a vanilla food. A bell and a chiseled
+     * bookshelf are such blocks; see {@link #isBellRung} and {@link #isBookshelfFrontHit}.
+     * {@code clickedPosition} is the hit point within the block, each coordinate from 0 to 1, and
+     * may be null.
      */
     static boolean passesFoodClickWhereHit(BlockData data, BlockFace hitFace, Vector clickedPosition) {
-        return data instanceof Bell && !isBellRung((Bell) data, hitFace, clickedPosition);
+        if (data instanceof Bell) {
+            return !isBellRung((Bell) data, hitFace, clickedPosition);
+        }
+        if (data instanceof Directional && isChiseledBookshelf(data.getMaterial())) {
+            return !isBookshelfFrontHit((Directional) data, hitFace);
+        }
+        return false;
+    }
+
+    /**
+     * Reports whether a block is a chiseled bookshelf. It is matched by name, because the
+     * constant and its {@code ChiseledBookshelf} block data arrived in 1.19.3, after the oldest
+     * supported server.
+     */
+    static boolean isChiseledBookshelf(Material blockType) {
+        return blockType != null && blockType.name().equals("CHISELED_BOOKSHELF");
+    }
+
+    /**
+     * Reports whether a right-click on this face reaches a chiseled bookshelf's slots. Vanilla
+     * uses a click only on the shelf's front, where a slot gives up its book or takes one, and
+     * passes a click on any other face on to the held item.
+     *
+     * An unknown face counts as the front, which leaves the food uneaten rather than letting a
+     * meal stop the player from taking a book.
+     */
+    static boolean isBookshelfFrontHit(Directional bookshelf, BlockFace hitFace) {
+        return hitFace == null || hitFace == bookshelf.getFacing();
     }
 
     /**

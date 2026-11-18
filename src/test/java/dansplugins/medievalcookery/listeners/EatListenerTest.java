@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.Bell;
 import org.bukkit.block.data.type.CaveVines;
 import org.bukkit.block.data.type.CaveVinesPlant;
@@ -291,9 +292,41 @@ class EatListenerTest {
     }
 
     @Test
-    void onlyABellIsJudgedByWhereItWasHit() {
+    void onlyABellOrAChiseledBookshelfIsJudgedByWhereItWasHit() {
         assertFalse(EatListener.passesFoodClickWhereHit(respawnAnchor(1), BlockFace.UP, MID_HEIGHT));
+        assertFalse(EatListener.passesFoodClickWhereHit(
+                blockData(Directional.class, Material.FURNACE, "getFacing", BlockFace.NORTH), BlockFace.SOUTH, MID_HEIGHT));
         assertFalse(EatListener.passesFoodClickWhereHit(null, null, null));
+    }
+
+    @Test
+    void aChiseledBookshelfClaimsTheClickByMaterialAlone() {
+        assertTrue(EatListener.isBlockInteractionInstead(Action.RIGHT_CLICK_BLOCK, Material.CHISELED_BOOKSHELF, false, false));
+    }
+
+    /** The front holds the slots, which give up a book or take one, and consume any other click. */
+    @Test
+    void aChiseledBookshelfKeepsAClickOnItsFront() {
+        assertFalse(EatListener.passesFoodClickWhereHit(chiseledBookshelf(BlockFace.NORTH), BlockFace.NORTH, MID_HEIGHT));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = BlockFace.class, names = {"EAST", "SOUTH", "WEST", "UP", "DOWN"})
+    void aChiseledBookshelfPassesAClickOffItsFront(BlockFace hitFace) {
+        assertTrue(EatListener.passesFoodClickWhereHit(chiseledBookshelf(BlockFace.NORTH), hitFace, MID_HEIGHT));
+    }
+
+    /** Without the hit face the front is assumed, and the food stays uneaten. */
+    @Test
+    void aChiseledBookshelfKeepsAClickWhoseFaceIsUnknown() {
+        assertFalse(EatListener.passesFoodClickWhereHit(chiseledBookshelf(BlockFace.NORTH), null, null));
+    }
+
+    @Test
+    void aChiseledBookshelfIsRecognisedByName() {
+        assertTrue(EatListener.isChiseledBookshelf(Material.CHISELED_BOOKSHELF));
+        assertFalse(EatListener.isChiseledBookshelf(Material.BOOKSHELF));
+        assertFalse(EatListener.isChiseledBookshelf(null));
     }
 
     @Test
@@ -381,6 +414,14 @@ class EatListenerTest {
                             throw new UnsupportedOperationException(method.getName());
                     }
                 });
+    }
+
+    /**
+     * Proxied as plain {@link Directional}, which is all the check reads, so that it runs as on a
+     * server older than the {@code ChiseledBookshelf} block data.
+     */
+    private static Directional chiseledBookshelf(BlockFace facing) {
+        return blockData(Directional.class, Material.CHISELED_BOOKSHELF, "getFacing", facing);
     }
 
     private static CaveVinesPlant caveVines(Class<? extends CaveVinesPlant> type, boolean berries) {
