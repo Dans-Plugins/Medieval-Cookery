@@ -31,6 +31,12 @@ variables `TRACE_USAGE_REPORTING=off` and `DO_NOT_TRACK=1` turn it off for the w
 plugin says on every startup whether reporting is on, and why it is off. Details:
 https://danielstephenson.dev/usage-reporting.
 
+Only a value that clearly means on (`true`, or the string `true`, `on`, `yes` or `1`) turns reporting on: a quoted
+`"false"`, a typo or an empty value turns it off, as does a `config.yml` that cannot be parsed. The
+environment variables fail closed: `TRACE_USAGE_REPORTING` set to anything but blank or
+`true`/`on`/`yes`/`1` turns reporting off, as does `DO_NOT_TRACK` set to anything but blank or
+`0`/`false`/`off`/`no`.
+
 ## recipes.yml
 
 ### Where recipes.yml Lives
