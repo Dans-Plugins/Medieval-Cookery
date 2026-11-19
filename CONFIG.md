@@ -7,7 +7,7 @@ lives in `config.yml`; both files are written to the plugin's data folder on fir
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `usage-reporting.enabled` | `true` | Whether the plugin reports usage events (see below). Set to `false` to turn it off. |
+| `usage-reporting.enabled` | `true` | Whether the plugin reports usage events (see below). Set to `false` to turn it off. Other spellings of the block or the switch (`usage_reporting:`, `usageReporting:`, `enable: false`, `disabled: true`), or `usage-reporting: false`, also count as off. |
 | `usage-reporting.endpoint` | `https://trace.danielstephenson.dev` | The trace server events are sent to. An empty string (`endpoint: ""`) means reporting is off regardless of `enabled`; a key with no value at all is read as the default. |
 | `usage-reporting.key` | the plugin's key | Identifies this plugin to the trace server so reports are attributed to it. Not a secret: it ships in the default config and can only report as MedievalCookery. Empty means reporting is off regardless of `enabled`. |
 
