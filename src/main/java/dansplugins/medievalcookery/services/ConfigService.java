@@ -2,6 +2,7 @@ package dansplugins.medievalcookery.services;
 
 import dansplugins.medievalcookery.CustomFoodRecipe;
 import dansplugins.medievalcookery.MedievalCookery;
+import dansplugins.medievalcookery.trace.UsageReportingSetting;
 import org.bukkit.Material;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +21,6 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 public class ConfigService {
-    private static final String USAGE_REPORTING_ENABLED_KEY = "usage-reporting.enabled";
     private static final String USAGE_REPORTING_ENDPOINT_KEY = "usage-reporting.endpoint";
     private static final String USAGE_REPORTING_KEY_KEY = "usage-reporting.key";
     private static final String DEFAULT_USAGE_REPORTING_ENDPOINT = "https://trace.danielstephenson.dev";
@@ -44,6 +44,7 @@ public class ConfigService {
     private final MedievalCookery medievalCookery;
 
     private final File recipesFile;
+    private final File configFile;
     private final FileConfiguration recipesConfig;
 
     public ConfigService(MedievalCookery medievalCookery) {
@@ -61,6 +62,7 @@ public class ConfigService {
     ConfigService(MedievalCookery medievalCookery, File dataFolder) {
         this.medievalCookery = medievalCookery;
         this.recipesFile = new File(dataFolder, "recipes.yml");
+        this.configFile = new File(dataFolder, "config.yml");
         if (!recipesFile.exists()) {
             saveRecipes(false);
         }
@@ -351,7 +353,7 @@ public class ConfigService {
     }
 
     public boolean isUsageReportingEnabled() {
-        return isUsageReportingEnabled(medievalCookery.getConfig());
+        return isUsageReportingEnabled(medievalCookery.getConfig(), configFile);
     }
 
     public String getUsageReportingEndpoint() {
@@ -378,8 +380,18 @@ public class ConfigService {
      * A blank endpoint counts as off, as an empty key does. Only reading it as the default would
      * start reporting to that server from one whose owner blanked the value to stop reports.
      */
+    /** As {@link #isUsageReportingEnabled(Configuration, File)} with no file on disk to consult. */
     static boolean isUsageReportingEnabled(Configuration config) {
-        return config.getBoolean(USAGE_REPORTING_ENABLED_KEY) && !isEndpointBlank(config);
+        return isUsageReportingEnabled(config, null);
+    }
+
+    /**
+     * Not {@code getBoolean()}: it returns the bundled true for a quoted "false" or any other
+     * value that is not a YAML boolean. Only a value that clearly means "on" turns reporting on,
+     * and an opt-out in {@code configFile} on disk (or a file that cannot be parsed) always wins.
+     */
+    static boolean isUsageReportingEnabled(Configuration config, File configFile) {
+        return UsageReportingSetting.isEnabled(config, configFile) && !isEndpointBlank(config);
     }
 
     /**

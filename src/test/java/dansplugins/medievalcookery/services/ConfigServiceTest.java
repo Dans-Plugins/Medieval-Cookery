@@ -551,4 +551,22 @@ class ConfigServiceTest {
         assertEquals("https://trace.danielstephenson.dev", ConfigService.getUsageReportingEndpoint(config));
         assertEquals("", ConfigService.getUsageReportingKey(config));
     }
+
+    @Test
+    void aQuotedFalseTurnsReportingOff() {
+        Configuration config = onDiskConfigLacking("usage-reporting:\n  enabled: \"false\"\n");
+        // getBoolean() reads the string "false" as the bundled default, true.
+        assertTrue(config.getBoolean("usage-reporting.enabled"));
+
+        assertFalse(ConfigService.isUsageReportingEnabled(config));
+    }
+
+    @Test
+    void anOptOutWrittenToConfigYmlWhileRunningWinsOverTheLoadedCopy(@TempDir Path dataFolder) throws IOException {
+        Configuration loaded = onDiskConfigLacking("usage-reporting:\n  enabled: true\n");
+        File configFile = dataFolder.resolve("config.yml").toFile();
+        Files.write(configFile.toPath(), "usage-reporting:\n  enabled: false\n".getBytes(StandardCharsets.UTF_8));
+
+        assertFalse(ConfigService.isUsageReportingEnabled(loaded, configFile));
+    }
 }
