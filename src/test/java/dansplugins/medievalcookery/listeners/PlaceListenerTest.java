@@ -21,7 +21,7 @@ class PlaceListenerTest {
     private final ItemStack food = new ItemStack(Material.PLAYER_HEAD);
     private final PlaceListener listener = new PlaceListener(item -> item == food);
 
-    /** The off hand is the route {@link EatListener} never sees, so it matters most here. */
+    /** A click on a block whose use passes it on reaches placement from either hand. */
     @ParameterizedTest
     @EnumSource(names = {"HAND", "OFF_HAND"})
     void aFoodIsNotPlacedFromEitherHand(EquipmentSlot hand) {

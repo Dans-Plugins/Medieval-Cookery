@@ -5,8 +5,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
@@ -31,7 +33,8 @@ public class DelayedExecution {
                 }, 0, 5);
     }
 
-    public void ConsumeItemInMainHand(final Player eventPlayer, final long duration, final BukkitTask task) {
+    public void ConsumeItemInHand(final Player eventPlayer, final EquipmentSlot hand, final long duration,
+                                  final BukkitTask task) {
         Bukkit.getScheduler().runTaskLater(medievalCookery,
                 new Runnable() {
                     @Override
@@ -42,7 +45,7 @@ public class DelayedExecution {
                         // which would be read out after you consume the food item (instead of just "it was delicious"
                         // it would say "it tastes like ..." and list some (if not all) of the ingredients.
                         try {
-                            finishEating(eventPlayer);
+                            finishEating(eventPlayer, hand);
                         } finally {
                             // The eating sound repeats until it is stopped, so it is stopped even
                             // if finishing the meal failed.
@@ -53,19 +56,19 @@ public class DelayedExecution {
     }
 
     /**
-     * Completes one eating session: the food leaves the player's hand and its effects are applied.
-     * In creative mode the food stays in the hand and no after-eat item is given; see
-     * {@link #isFoodTaken}.
+     * Completes one eating session: the food leaves the hand the meal was started from, and its
+     * effects are applied. In creative mode the food stays in the hand and no after-eat item is
+     * given; see {@link #isFoodTaken}.
      *
-     * Nothing is applied if the meal was interrupted: a player who moves the food out of their
-     * main hand before the last bite does not get to keep it, a player who has died in the
+     * Nothing is applied if the meal was interrupted: a player who moves the food out of that
+     * hand before the last bite does not get to keep it, a player who has died in the
      * meantime does not eat it (see {@link #isFoodToBeEaten}), and a meal already ended by some
      * other route is not completed a second time — {@code JoinListener} ends one on rejoin. The
      * eating state is cleared either way, so an interrupted meal cannot block the next one. The
      * exception is a player who quits before the last bite, who is left alone entirely and whose
      * eating state is cleared when they rejoin; see {@link #isMealToFinish}.
      */
-    void finishEating(Player player) {
+    void finishEating(Player player, EquipmentSlot hand) {
         if (!isMealToFinish(player.isOnline(), medievalCookery.isPlayerEating(player))) {
             return;
         }
@@ -77,18 +80,13 @@ public class DelayedExecution {
             return;
         }
 
-        ItemStack inHand = player.getInventory().getItemInMainHand();
+        ItemStack inHand = player.getInventory().getItem(hand);
         if (!isFoodToBeEaten(player.isDead(), medievalCookery.recipeOf(inHand) == recipe)) {
             return;
         }
         boolean takesFood = isFoodTaken(player.getGameMode());
         if (takesFood) {
-            if (inHand.getAmount() > 1) {
-                inHand.setAmount(inHand.getAmount() - 1);
-                player.getInventory().setItemInMainHand(inHand);
-            } else {
-                player.getInventory().setItemInMainHand(null);
-            }
+            takeOne(player.getInventory(), hand, inHand);
         }
 
         player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, recipe.hungerDecrease, 0));
@@ -115,7 +113,8 @@ public class DelayedExecution {
     /**
      * Decides whether a meal that is being finished takes the food and applies its effects.
      *
-     * The food has to still be in the main hand. The player also has to be alive. With
+     * The food has to still be in the hand the meal was started from. The player also has to be
+     * alive. With
      * keepInventory on, the food stays in the hand of a player who dies mid-meal, and eating it on
      * the death screen would take the food and give nothing back, because potion effects do not
      * survive the respawn. The eating state has been cleared by this point either way, so the
@@ -136,6 +135,20 @@ public class DelayedExecution {
      */
     static boolean isFoodTaken(GameMode gameMode) {
         return gameMode != GameMode.CREATIVE;
+    }
+
+    /**
+     * Takes one food from the stack in {@code hand}, which is the hand the meal was started from,
+     * clearing the hand when that was the last one. A meal started from the off hand takes from
+     * the off hand, so a main-hand item is never the one used up.
+     */
+    static void takeOne(PlayerInventory inventory, EquipmentSlot hand, ItemStack inHand) {
+        if (inHand.getAmount() > 1) {
+            inHand.setAmount(inHand.getAmount() - 1);
+            inventory.setItem(hand, inHand);
+        } else {
+            inventory.setItem(hand, null);
+        }
     }
 
     /**

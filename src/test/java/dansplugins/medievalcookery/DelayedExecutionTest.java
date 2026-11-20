@@ -3,8 +3,10 @@ package dansplugins.medievalcookery;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -17,10 +19,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -129,6 +134,46 @@ class DelayedExecutionTest {
     @EnumSource(value = GameMode.class, names = {"SURVIVAL", "ADVENTURE"})
     void aSurvivalOrAdventurePlayerUsesUpTheFood(GameMode gameMode) {
         assertTrue(DelayedExecution.isFoodTaken(gameMode));
+    }
+
+    /** A meal started from either hand takes its food from that hand, and from no other. */
+    @ParameterizedTest
+    @EnumSource(value = EquipmentSlot.class, names = {"HAND", "OFF_HAND"})
+    void oneFoodIsTakenFromTheHandTheMealWasStartedFrom(EquipmentSlot hand) {
+        ItemStack food = new ItemStack(Material.PLAYER_HEAD, 3);
+        Map<EquipmentSlot, ItemStack> set = new HashMap<>();
+
+        DelayedExecution.takeOne(handsRecording(set), hand, food);
+
+        assertEquals(Set.of(hand), set.keySet());
+        assertEquals(2, set.get(hand).getAmount());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = EquipmentSlot.class, names = {"HAND", "OFF_HAND"})
+    void theLastFoodEatenEmptiesThatHand(EquipmentSlot hand) {
+        Map<EquipmentSlot, ItemStack> set = new HashMap<>();
+
+        DelayedExecution.takeOne(handsRecording(set), hand, new ItemStack(Material.PLAYER_HEAD, 1));
+
+        assertEquals(Set.of(hand), set.keySet());
+        assertNull(set.get(hand));
+    }
+
+    /**
+     * A player inventory that records what is put in each slot through {@code setItem}. Any
+     * other call, such as {@code setItemInMainHand}, fails the test.
+     */
+    private static PlayerInventory handsRecording(Map<EquipmentSlot, ItemStack> set) {
+        return (PlayerInventory) Proxy.newProxyInstance(PlayerInventory.class.getClassLoader(),
+                new Class<?>[]{PlayerInventory.class},
+                (proxy, method, args) -> {
+                    if (!method.getName().equals("setItem") || !(args[0] instanceof EquipmentSlot)) {
+                        throw new UnsupportedOperationException(method.getName());
+                    }
+                    set.put((EquipmentSlot) args[0], (ItemStack) args[1]);
+                    return null;
+                });
     }
 
     private static ItemStack bundledAfterEatItem(String recipeId) {
