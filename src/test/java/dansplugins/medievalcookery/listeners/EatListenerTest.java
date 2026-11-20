@@ -14,6 +14,7 @@ import org.bukkit.block.data.type.RespawnAnchor;
 import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,25 @@ class EatListenerTest {
     @EnumSource(names = {"LEFT_CLICK_AIR", "LEFT_CLICK_BLOCK", "PHYSICAL"})
     void nothingElseBeginsAMeal(Action action) {
         assertFalse(EatListener.isEatingGesture(action));
+    }
+
+    /** A food in the off hand is eaten as it is in the main hand, as with a vanilla food. */
+    @ParameterizedTest
+    @EnumSource(names = {"HAND", "OFF_HAND"})
+    void eitherHandBeginsAMeal(EquipmentSlot hand) {
+        assertTrue(EatListener.isEatingHand(hand));
+    }
+
+    @ParameterizedTest
+    @EnumSource(names = {"HEAD", "CHEST", "LEGS", "FEET"})
+    void noOtherSlotBeginsAMeal(EquipmentSlot slot) {
+        assertFalse(EatListener.isEatingHand(slot));
+    }
+
+    /** A PHYSICAL action carries no hand. */
+    @Test
+    void noHandBeginsNoMeal() {
+        assertFalse(EatListener.isEatingHand(null));
     }
 
     /**

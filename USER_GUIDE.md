@@ -28,12 +28,12 @@ All recipes use the standard 3×3 crafting table. In the patterns below, each ro
 
 ## Eating a Food
 
-Hold the food in your main hand and right-click. The foods are player heads, which vanilla Minecraft does not treat as edible, so the plugin handles the right-click itself: instead of placing the head as a block, it starts a meal.
+Hold the food in either hand and right-click. As with a vanilla food, a food in your off hand is eaten when the item in your main hand has no use for the click — an empty hand, a sword, a block clicked into the air — and with a food in both hands the one in your main hand is eaten. The foods are player heads, which vanilla Minecraft does not treat as edible, so the plugin handles the right-click itself: instead of placing the head as a block, it starts a meal.
 
 - Eating takes 32 ticks — about 1.6 seconds — the same as a vanilla food, with the eating sound playing throughout.
-- One food is then taken from your hand, a Saturation effect is applied for the number of ticks the recipe's `hungerDecrease` sets, and a message confirms the meal.
+- One food is then taken from the hand you ate it from, a Saturation effect is applied for the number of ticks the recipe's `hungerDecrease` sets, and a message confirms the meal.
 - If the recipe sets an `afterEatItem`, that item is added to your inventory, or dropped at your feet if your inventory has no room for it. Beet Salad and Bowl of Rice return the Bowl used to craft them.
-- Moving the food out of your main hand before the meal finishes cancels it. No food is consumed and no effect is applied in that case.
+- Moving the food out of that hand before the meal finishes cancels it, and so does swapping it to your other hand. No food is consumed and no effect is applied in that case.
 - Logging out before the meal finishes cancels it in the same way, and so does dying. With keepInventory on, the food is still in your hand when you respawn.
 - A meal only starts when your hunger bar is not full, as with a vanilla food. With a full hunger bar the right-click does nothing and the food is kept. In creative mode a meal starts regardless. In spectator mode a meal never starts, as a spectator cannot use a vanilla food either.
 - In creative mode the food stays in your hand and no `afterEatItem` is given, as with a vanilla food; the Saturation effect and the message still apply.
@@ -43,8 +43,6 @@ Hold the food in your main hand and right-click. The foods are player heads, whi
 - Where another plugin blocks the right-click — a protected region, a lobby, a jail — no meal starts and the food is kept, just as a vanilla food cannot be eaten there.
 
 ## Known Limitations
-
-A food eaten from the off-hand is not recognised — only the main hand starts a meal.
 
 A food crafted before foods were tagged with their recipe is recognised by its display name together with its skin. Such a food renamed in an anvil can no longer be eaten, and one whose recipe has no `textureBase64` cannot be eaten at all, since it cannot be told apart from an ordinary player head given the same name. Foods crafted since then are recognised by their tag, so they can be renamed freely, and a player head renamed after a recipe is not a food.
 

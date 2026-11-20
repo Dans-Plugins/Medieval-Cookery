@@ -30,7 +30,8 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Starts an eating session when a player right-clicks while holding one of the plugin's foods.
+ * Starts an eating session when a player right-clicks while holding one of the plugin's foods in
+ * either hand.
  *
  * The foods are player heads, which vanilla Minecraft does not treat as edible, so no consumption
  * event is ever fired for them: right-clicking one either does nothing or places it as a block.
@@ -90,7 +91,7 @@ public class EatListener implements Listener {
      */
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteractEvent(PlayerInteractEvent event) {
-        if (!isEatingGesture(event.getAction()) || event.getHand() != EquipmentSlot.HAND) {
+        if (!isEatingGesture(event.getAction()) || !isEatingHand(event.getHand())) {
             return;
         }
         if (isItemUseDenied(event)) {
@@ -126,7 +127,17 @@ public class EatListener implements Listener {
         medievalCookery.startPlayerEating(player, recipe.key);
         DelayedExecution delayedExecution = new DelayedExecution(medievalCookery);
         BukkitTask eatingSound = delayedExecution.PlayEatingSound(player);
-        delayedExecution.ConsumeItemInMainHand(player, EATING_DURATION_TICKS, eatingSound);
+        delayedExecution.ConsumeItemInHand(player, event.getHand(), EATING_DURATION_TICKS, eatingSound);
+    }
+
+    /**
+     * Either hand can begin a meal, as with a vanilla food. The server is only asked to use the
+     * off hand's item once the main hand's item has passed on the click, so an off-hand event
+     * already means the main hand had no use for it. With a food in both hands the main hand's
+     * event of the same click has started a meal by then, and the off hand's finds it under way.
+     */
+    static boolean isEatingHand(EquipmentSlot hand) {
+        return hand == EquipmentSlot.HAND || hand == EquipmentSlot.OFF_HAND;
     }
 
     /**

@@ -11,9 +11,9 @@ import java.util.function.Predicate;
 /**
  * Stops one of the plugin's foods from being placed as a block.
  *
- * {@link EatListener} cancels the right-click that begins a meal, but leaves alone a food held in
- * the off hand, and a click on a block with a use of its own, which can still pass the click on
- * to the item: a jukebox does while it is empty. Vanilla places the head in either case.
+ * {@link EatListener} cancels the right-click that begins a meal, from either hand, but leaves
+ * alone a click on a block with a use of its own, which can still pass the click on to the item:
+ * a jukebox does while it is empty. Vanilla places the head in that case.
  * A placed head does not keep the recipe tag the food is recognised by, so the head that drops
  * when the block is broken is no longer that food. Every route to placing one ends here.
  */
