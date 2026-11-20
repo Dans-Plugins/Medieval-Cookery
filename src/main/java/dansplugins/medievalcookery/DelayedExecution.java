@@ -116,8 +116,8 @@ public class DelayedExecution {
      * The food has to still be in the hand the meal was started from. The player also has to be
      * alive. With keepInventory on, the food stays in the hand of a player who dies mid-meal, and
      * eating it on the death screen would take the food and give nothing back, because potion
-     * effects do not survive the respawn. The eating state has been cleared by this point either way, so the
-     * player can eat again after respawning.
+     * effects do not survive the respawn. The eating state has been cleared by this point either
+     * way, so the player can eat again after respawning.
      */
     static boolean isFoodToBeEaten(boolean dead, boolean stillHeld) {
         return !dead && stillHeld;
